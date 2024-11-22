@@ -1,0 +1,28 @@
+POSSIBLE ACTIONS:
+- insert;
+- extract;
+
+
+insert:
+
+STRUCTURE: 
+	insert <author>
+
+ACTION:
+	inserts the chosen author at the end of the file
+
+extract:
+
+STRUCTURE:
+	extract
+
+ACTION:
+	randomly extracts the author from those in the file
+
+
+EXTRA ACTIONS:
+- rt (remaining-time): how much time to the next extraction (to implement this a timestamp of the extraction should be saved);
+
+EXTRA IMPLEMENTATION:
+	The application should let an author be extracted only every week.
+
