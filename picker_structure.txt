@@ -20,6 +20,11 @@ ACTION:
 	randomly extracts the author from those in the file
 
 
+RUNNING THE PROGRAM:
+	./out gianni morandi
+	./out -e
+
+
 EXTRA ACTIONS:
 - rt (remaining-time): how much time to the next extraction (to implement this a timestamp of the extraction should be saved);
 
