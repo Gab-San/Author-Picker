@@ -10,4 +10,4 @@ src/author_picker_lib : src/author_picker.c
 	gcc -c $(FLAGS) src/author_picker_lib src/author_picker.c
 
 clean:
-	rm out/out src/helper_lib src/author_picker_lib
+	rm out/out src/helper_lib src/author_picker_lib out/author_db.txt

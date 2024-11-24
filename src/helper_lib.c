@@ -2,15 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int len_of_str(char* buffer, int max_len){
+int len_of_str(char* buffer, size_t max_len){
     int counter = 0;
     while(counter < max_len && *(buffer + counter) != '\0') counter++;
     return counter;
 }
 
-void read_line(char *buffer, int max_len) {
+void read_line(char *buffer, size_t max_len) {
     char format[32]; // Max int (10) + '%' '[' 'A' '-' 'z' '\s' ']' (7) rounded up to the closest power of two (thanks Daniel Trugman)
-    snprintf(format, sizeof(format), "%%%d[A-z ]", max_len - 1);
+    snprintf(format, sizeof(format), "%%%ld[0-9A-z ]", max_len - 1);
     // printf("FORMAT: %s\n", format);
     scanf(format, buffer);
 }

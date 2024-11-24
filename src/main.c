@@ -4,10 +4,8 @@
 #include "author_picker.h"
 #include "helper_lib.h"
 
-#define N 50
 #define A 2 
-#define DIFF (97-65)
-#define MENU ("Welcome to Author Picker:\n1.[I]nsert an author\n2.[E]xtract an author\n3.[Q]uit\n")
+#define MENU ("\nWelcome to Author Picker:\n1.[I]nsert an author\n2.[E]xtract an author\n3.[Q]uit\n")
 #define INPUT ("> ")
 
 void flush_stdin() {
@@ -21,15 +19,14 @@ int parse_input(char action, char* buf){
     {
     case 'i':
         printf("Insert the name of the author: ");
-        read_line(buf, N);
+        read_line(buf, AUTHOR_LEN);
         flush_stdin();
-        printf("LEN: %d\tBUF: %s\n", len_of_str(buf, N), buf);
-        printf("Inserting...\n");
-        insert(buf);
+        printf("Inserting %s...\n", buf);
+        insert_author(buf);
         return 1;
     case 'e':
         printf("Extracting...");
-        extract();
+        extract_author();
         return 1;
     case 'q': return 0;
     default:
@@ -40,9 +37,8 @@ int parse_input(char action, char* buf){
 
 
 int main(int argc, char** argv) {
-
     char action;
-    char buffer[N];
+    char buffer[AUTHOR_LEN] = {'\0'};
     int running = 1;
     while (running) {
         printf(MENU);

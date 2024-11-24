@@ -14,7 +14,7 @@
     # Output
     Maximum between the length of the string and the specified max_len
 */
-int len_of_str(char* buffer, int max_len);
+int len_of_str(char* buffer, size_t max_len);
 
 /*
     Reads a line from stdin (a sequence of characters and spaces till newline) of max_len (spaces included).
@@ -32,7 +32,7 @@ int len_of_str(char* buffer, int max_len);
     # Output
     Fills the buffer with the input from stdin.
 */
-void read_line(char* buffer, int max_len);
+void read_line(char* buffer, size_t max_len);
 
 /*
     Converts a character to the upper-case equivalent.
