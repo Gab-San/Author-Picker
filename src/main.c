@@ -21,10 +21,10 @@ int parse_input(char action, char* buf){
     {
     case 'i':
         printf("Insert the name of the author: ");
-        read_input(buf, N);
+        read_line(buf, N);
         flush_stdin();
         printf("LEN: %d\tBUF: %s\n", len_of_str(buf, N), buf);
-        printf("Inserting...");
+        printf("Inserting...\n");
         insert(buf);
         return 1;
     case 'e':

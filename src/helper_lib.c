@@ -8,7 +8,7 @@ int len_of_str(char* buffer, int max_len){
     return counter;
 }
 
-void read_input(char *buffer, int max_len) {
+void read_line(char *buffer, int max_len) {
     char format[32]; // Max int (10) + '%' '[' 'A' '-' 'z' '\s' ']' (7) rounded up to the closest power of two (thanks Daniel Trugman)
     snprintf(format, sizeof(format), "%%%d[A-z ]", max_len - 1);
     // printf("FORMAT: %s\n", format);
