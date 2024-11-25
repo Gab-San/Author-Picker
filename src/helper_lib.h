@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 
+/*
+    Difference between 'a' and 'A'.
+*/
 #define CHAR_DIFF (97-65)
 /*
     This function returns the maximum between the length of the string or the given maximum length. 

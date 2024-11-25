@@ -25,7 +25,7 @@ int parse_input(char action, char* buf){
         insert_author(buf);
         return 1;
     case 'e':
-        printf("Extracting...");
+        printf("Extracting...\n");
         extract_author();
         return 1;
     case 'q': return 0;
