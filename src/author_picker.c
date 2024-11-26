@@ -9,6 +9,7 @@
 
 
 #define ERR_MSG_LEN 100
+#define READ_LEN 100
 
 const char* datafile = "./out/author_db.txt";
 
@@ -20,44 +21,42 @@ void fatal(const char* msg){
     exit(-1);
 }
 
-char* format_data(char* author_name){
-    // COPY MANUALLY
-    char* buf = (char*) malloc(sizeof(char)* (AUTHOR_LEN + 1));
-    char fill[AUTHOR_LEN] = {' '};
-    strcpy(buf, author_name);
-    printf("%s\n", buf);
-    strncat(buf, fill, AUTHOR_LEN - len_of_str(author_name, AUTHOR_LEN));
-    buf[AUTHOR_LEN] = '\n';
-    printf("%s\n", buf);
-    for(int i = 0; i < AUTHOR_LEN +1; i++){
-        printf("0x%x\n", buf[i]);
-    }
-    return buf;
-}
-
 void append_author(FILE* fp, char* auth_name){
     fseek(fp, 0, SEEK_END);
-    char* formatted_data = format_data(auth_name);
-    fwrite(formatted_data, AUTHOR_LEN + 1, 1, fp);
-    free(formatted_data);
+    fwrite(auth_name, len_of_str(auth_name,AUTHOR_LEN), 1, fp);
+    fwrite("\n", 1, 1, fp);
     printf("%s inserted!\n", auth_name);
 }
 
+int estimate_read_length(FILE* fp) {
+    int bytes_read = 0;
+    char c;
+    while( (c = fgetc(fp)) != '\n' && c != (EOF)) bytes_read++;
+    printf("[DEBUG:estimate_read_length()] bytes_read: %d\n", bytes_read);
+    fseek(fp, -1 * (bytes_read + 1), SEEK_CUR); // + 1 for '\n'
+    return bytes_read;
+}
+void debug_string(char* buf){
+    int i = 0;
+    for(; buf[i] != '\0' && buf[i] != '\n'; i++) printf("%d\t", buf[i]);
+    printf("%d\n", buf[i]);
+}
 int search_author(FILE* fp, char* auth){
     // MISSING OFFSET OF THE FIRST LINE
 
-    char input_read[AUTHOR_LEN + 1];
-    int items_read;
+    char input_read[AUTHOR_LEN + 1] = {'\0'};
+    int bytes_read;
     fseek(fp, 0, SEEK_SET);
     do{
-        input_read[0] = '\0';
-        items_read = fread(input_read, AUTHOR_LEN + 1, 1, fp);
-        printf("READ IT: %d. INPUT: %s\n", items_read, input_read);
+        bytes_read = estimate_read_length(fp);
+        fread(input_read, bytes_read + 1, 1, fp);
+        input_read[bytes_read] = '\0'; // SUBSTITUTE '\n' with '\0'
+        printf("INPUT: %s\n", input_read);
         // ALL OF THE SUBSTRING OF INPUT_READ ARE CONSIDERED EQUAL aaa == aa
-        if( strncmp(input_read, auth, len_of_str(auth,AUTHOR_LEN) - 1) == 0 ){
+        if( len_of_str(input_read, AUTHOR_LEN + 1) == len_of_str(auth, AUTHOR_LEN) && strncmp(input_read, auth, len_of_str(auth,AUTHOR_LEN)) == 0 ){
             return 1;
         }
-    }while(items_read != 0);
+    }while(bytes_read != 0);
 
     return 0;
 }   
@@ -101,15 +100,17 @@ void remove_author(char* author_name){
 int num_of_authors(FILE* fp) {
     // SHOULD ADD THE OFFSET OF THE EXTRACTED GUY
     int counter = 0;
-    int item_read = 0;
+    int bytes_read;
     char input_read[AUTHOR_LEN + 1];
 
     do{
         input_read[0] = '\0';
-        item_read = fread(input_read, AUTHOR_LEN + 1, 1, fp);
-        counter += item_read;
+        bytes_read = estimate_read_length(fp);
+        fread(input_read, bytes_read + 1, 1, fp);
+        input_read[bytes_read] = '\0';
+        counter += bytes_read == 0 ? 0 : 1;
         printf("[DEBUG] Items read: %d\t Input: %s\n", counter, input_read);
-    }while(item_read != 0);
+    }while(bytes_read != 0);
 
     return counter;
 }
