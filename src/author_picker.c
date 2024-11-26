@@ -36,11 +36,13 @@ int estimate_read_length(FILE* fp) {
     fseek(fp, -1 * (bytes_read + 1), SEEK_CUR); // + 1 for '\n'
     return bytes_read;
 }
+
 void debug_string(char* buf){
     int i = 0;
     for(; buf[i] != '\0' && buf[i] != '\n'; i++) printf("%d\t", buf[i]);
     printf("%d\n", buf[i]);
 }
+
 int search_author(FILE* fp, char* auth){
     // MISSING OFFSET OF THE FIRST LINE
 
@@ -115,6 +117,28 @@ int num_of_authors(FILE* fp) {
     return counter;
 }
 
+void skip_to_line(int line, FILE* fp) {
+    fseek(fp, 0, SEEK_SET);
+    int count = 0;
+    char c;
+    while(count < line){
+        while((c = fgetc(fp)) != '\n' && c != EOF);
+        count++;
+    }
+}
+
+void overwrite_blank(FILE* fp, int bytes){
+    char* blanks = (char* ) malloc(bytes + 1);
+    int i;
+    for(i = 0; i < bytes + 1; i++){
+        blanks[i] = ' ';
+    }
+    blanks[bytes] = '\0';
+    fwrite(blanks, bytes, 1, fp);
+    free(blanks);
+    fseek(fp, -1 * (bytes + 1), SEEK_CUR);
+}
+
 void extract_author() {
     // At this point the file should exist
     FILE* fp = fopen(datafile, "r+");
@@ -126,8 +150,45 @@ void extract_author() {
 
     assert(reads != 0);
     
-    // srand(time(NULL));
-    // int r = rand() % reads;
-    // char extracted[AUTHOR_LEN];
 
+    srand(time(NULL));
+    int r = rand() % reads;
+
+    skip_to_line(r, fp);
+
+    int bytes_read = estimate_read_length(fp);
+    char* extracted = (char*) malloc(sizeof(char) * bytes_read + 1);
+    fread(extracted, bytes_read + 1, 1, fp);
+    extracted[bytes_read] = '\0';
+
+    printf("[DEBUG:extract_author()] EXTRACTED %s FROM LINE %d\n", extracted, r + 1);
+    // WHAT IS WRITTEN ON LINE 0 MUST BE SAVED THE FIRST ITERATION (WILL BE FIXED)
+
+    skip_to_line(0, fp);
+    bytes_read = estimate_read_length(fp);
+    char* save = (char*) malloc(bytes_read + 1);
+    fread(save, bytes_read+1, 1, fp);
+    save[bytes_read] = '\0';
+    fseek(fp, -1 * (bytes_read + 1), SEEK_CUR);
+
+    overwrite_blank(fp, bytes_read);
+
+    char formatted_write[100];
+    strcpy(formatted_write, "LAST EXTRACTED: ");
+    strncat(formatted_write, extracted, len_of_str(extracted, AUTHOR_LEN));
+    printf("%s", formatted_write);
+    fwrite(formatted_write, len_of_str(formatted_write, READ_LEN), 1, fp);
+    free(extracted);
+
+    skip_to_line(r,fp);
+    fwrite(save, len_of_str(save, AUTHOR_LEN), 1, fp);
+    fwrite("\n", 2, 1, fp);
+    free(save);
+    fclose(fp);
+}
+
+void overwrite(){
+    FILE* fp = fopen(datafile, "r+");
+    fwrite("\0", 1, 1, fp);
+    fclose(fp);
 }
