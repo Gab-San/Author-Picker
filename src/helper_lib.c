@@ -1,6 +1,9 @@
 #include "helper_lib.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#define ERR_MSG_LEN 100
 
 int len_of_str(char* buffer, size_t max_len){
     int counter = 0;
@@ -27,4 +30,13 @@ char conv_to_upper(char c){
 char conv_to_lower(char c) {
     // if it's already a lower letter it doesn't get converted
     return cmp_eq_char(c, 'a', 'z') || !cmp_eq_char(c, 'A', 'z') ? c : c + CHAR_DIFF;
+}
+
+void fatal(const char* msg){
+    char error_message[ERR_MSG_LEN];
+    strcpy(error_message, "[!!] Fatal error:");
+    const int error_offst = 17;
+    strncat(error_message, msg, ERR_MSG_LEN - error_offst); // considers the length of the starting string
+    perror(error_message);
+    exit(-1);
 }

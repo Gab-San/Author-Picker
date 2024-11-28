@@ -71,4 +71,12 @@ char conv_to_upper(char c);
     then the returned value is c.
 */
 char conv_to_lower(char c);
+
+/*
+    Prints the error message and aborts the program.
+
+    # Input
+    The error message to be printed along the error
+*/
+void fatal(const char* msg);
 #endif
