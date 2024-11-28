@@ -18,6 +18,11 @@ struct first_line_cnt { //CNT SHORT FOR CONTENT
     time_format_t time;
 };
 
+typedef struct char_buffer {
+    char* buf;
+    int bytes;
+} cbuffer_t;
+
 const char datafile[20] = "./out/author_db.txt";
 
 int estimate_read_length(FILE* fp) {
@@ -64,10 +69,9 @@ int skip_to_line_from(int from_line, int to_line, FILE* fp){
 
         while((c = fgetc(fp)) != '\n'){
             if (c == EOF) break;
-            printf("%c\t", c);
             bytes_read++;
         }
-        printf("%c\n", c);
+
         bytes_read++;
         count++;
     }
@@ -174,25 +178,11 @@ void write_first_line(FILE* fp, char* buf){
     fseek(fp, FIRST_LINE_OFFST-1, SEEK_SET);
     fwrite(buf, len_of_str(buf, AUTHOR_LEN), 1, fp);
     fwrite("\n", 1, 1, fp);
+    int written_bytes = FIRST_LINE_OFFST + len_of_str(buf,AUTHOR_LEN);
+    truncate(datafile, written_bytes);
 }
 
-void replace_line(FILE* fp, int line, int replaced_line_bytes){
-    int first_line_bytes = skip_first_line(fp);
-    int tot_bytes_read = go_to_line(line, fp);
-    int bytes_read_to_line = tot_bytes_read - first_line_bytes;
-    // GETTING BACK TO LINE 1
-    fseek(fp, -1 * bytes_read_to_line, SEEK_CUR);
-    char* buf = (char* ) malloc(bytes_read_to_line);
-    fread(buf, bytes_read_to_line, 1, fp);
-    // GETTING BACK TO LINE 1
-    fseek(fp, -1 * bytes_read_to_line, SEEK_CUR);
-    // OFFSETTING BY THE BYTES THAT WILL BE OCCUPIED IN THE FIRST LINE
-    fseek(fp, replaced_line_bytes, SEEK_CUR);
-    fwrite(buf, bytes_read_to_line, 1, fp);
-    free(buf);
-}
-
-void copy_text(FILE* fp, int starting_line, int n_line){
+cbuffer_t* copy_text(FILE* fp, int starting_line, int n_line){
     go_to_line(starting_line, fp);
 
     // At this point the program is in extracted-line + 1
@@ -202,17 +192,17 @@ void copy_text(FILE* fp, int starting_line, int n_line){
     int bytes_read = skip_to_line_from(starting_line, n_line, fp);
     //GETTING BACK TO THE CORRECT LINE
     fseek(fp, -1 * bytes_read, SEEK_CUR);
+    cbuffer_t* cp_buf = (cbuffer_t*) malloc(sizeof(cbuffer_t));
+    cp_buf->buf = (char*) malloc(bytes_read);
+    cp_buf->bytes = bytes_read;
+    fread(cp_buf->buf, cp_buf->bytes, 1, fp);
+    return cp_buf;
+}
 
-    char* cp_buf = (char*) malloc(bytes_read);
-    fread(cp_buf, bytes_read, 1, fp);
-
-    go_to_line(starting_line - 1, fp);
-    
-    fwrite(cp_buf, bytes_read, 1, fp);
-    free(cp_buf);
-    bytes_read = go_to_line(n_line, fp);
-
-    truncate(datafile, bytes_read - 1); // should cancel the last '\n' meaning a byte
+void copy_back_txt(cbuffer_t* lines_before, cbuffer_t* lines_after, FILE* fp){
+    skip_first_line(fp);
+    fwrite(lines_before->buf, lines_before->bytes, 1, fp);
+    fwrite(lines_after->buf, lines_after->bytes, 1, fp);
 }
 
 void extract_author() {
@@ -237,10 +227,12 @@ void extract_author() {
     char* extracted = (char*) malloc(sizeof(char) * bytes_read + 1);
     fread(extracted, bytes_read + 1, 1, fp);
     extracted[bytes_read] = '\0';
-    replace_line(fp, r, bytes_read);
+    cbuffer_t* cp_before_line = copy_text(fp, 0, r);
+    cbuffer_t* cp_after_line = copy_text(fp, r + 1, reads);
     write_first_line(fp, extracted);
-    copy_text(fp, r + 1, reads);
+    
+    copy_back_txt(cp_before_line, cp_after_line, fp);
+    printf("%s extracted!\n", extracted);
     free(extracted);
-
     fclose(fp);
 }

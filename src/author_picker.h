@@ -6,7 +6,6 @@
 void insert_author(char* author_name);
 void extract_author();
 void remove_author(char* author_name);
-void overwrite();
 // void read_authors();
 // void find_author(char* author_name);
 

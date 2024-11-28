@@ -28,7 +28,6 @@ int parse_input(char action, char* buf){
         printf("Extracting...\n");
         extract_author();
         return 1;
-    case 'o': overwrite(); return 1;
     case 'q': return 0;
     default:
         printf("Selected action not valid: %c\n", action);
