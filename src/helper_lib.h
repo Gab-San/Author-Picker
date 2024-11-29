@@ -79,4 +79,6 @@ char conv_to_lower(char c);
     The error message to be printed along the error
 */
 void fatal(const char* msg);
+
+void report_fatal_error(const char* msg);
 #endif

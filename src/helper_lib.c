@@ -41,3 +41,8 @@ void fatal(const char* msg){
     perror(error_message);
     exit(-1);
 }
+
+void report_fatal_error(const char* msg){
+    fprintf(stderr, "ERROR: %s\n", msg);
+    exit(-1);
+}

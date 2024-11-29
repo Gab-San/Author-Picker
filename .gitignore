@@ -1,4 +1,5 @@
-/out
-/lib
+out/
+lib/
+tests/
 .vscode
 *.sh

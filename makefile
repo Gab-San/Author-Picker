@@ -14,3 +14,6 @@ lib/ap_time_lib : src/ap_time.c
 
 clean:
 	rm out/out lib/helper_lib lib/author_picker_lib lib/ap_time_lib out/author_db.txt
+
+tests : tests/test_ap_time.c lib/helper_lib lib/ap_time_lib
+	gcc $(FLAGS) tests/test_ap_time tests/test_ap_time.c lib/ap_time_lib lib/helper_lib

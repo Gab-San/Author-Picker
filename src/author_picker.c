@@ -15,7 +15,7 @@
 
 struct first_line_cnt { //CNT SHORT FOR CONTENT
     char* auth_name;
-    time_format_t time;
+    formatted_time_t time;
 };
 
 // Basically somewhat of a string: it makes it easier to do operations of copying and writing
@@ -33,10 +33,9 @@ FILE* initialize_file(){
     FILE* fp = fopen(datafile, "w+");
     if(fp == NULL) fatal("in initialize_file() while opening file.");
     char first_line[FIRST_LINE_OFFST];
-
     strncpy(first_line, FIRST_LINE_TEXT, FIRST_LINE_OFFST);
-    first_line[FIRST_LINE_OFFST - 1] = '\n'; // Subst \0
-    fwrite(first_line, FIRST_LINE_OFFST, 1, fp);
+    fwrite(first_line, len_of_str(first_line, FIRST_LINE_OFFST), 1, fp);
+    fwrite("dd/mm/yyyy hh:mm:ss\n", FORMATTED_TIME_LEN + 1, 1, fp);
     return fp;
 }
 
@@ -146,6 +145,7 @@ void append_author(FILE* fp, char* auth_name){
 void read_extracted_auth(FILE* fp,char* rbuf){
     fseek(fp, FIRST_LINE_OFFST - 1, SEEK_SET);
     int b = estimate_read_length(fp);
+    b -= FORMATTED_TIME_LEN + 1; // Counting the space after the name
     fread(rbuf, b + 1, 1, fp);
     rbuf[b] = '\0';
     printf("[DEBUG:read_extracted_auth()] INPUT READ: %s\n", rbuf);
@@ -250,6 +250,12 @@ int num_of_authors(FILE* fp) {
 void write_first_line(FILE* fp, char* buf){
     fseek(fp, FIRST_LINE_OFFST-1, SEEK_SET);
     fwrite(buf, len_of_str(buf, AUTHOR_LEN), 1, fp);
+    fwrite(" ", 1, 1, fp);
+    formatted_time_t* ftime = get_current_time();
+    char* str_ftime = ftime_to_string(ftime);
+    fwrite(str_ftime, len_of_str(str_ftime, MAX_STR_LEN) , 1, fp);
+    free(str_ftime);
+    free(ftime);
     fwrite("\n", 1, 1, fp);
     int written_bytes = FIRST_LINE_OFFST + len_of_str(buf,AUTHOR_LEN);
     truncate(datafile, written_bytes);
@@ -273,7 +279,9 @@ cbuffer_t* copy_text(FILE* fp, int starting_line, int n_line){
     //GETTING BACK TO THE CORRECT LINE
     fseek(fp, -1 * bytes_read, SEEK_CUR);
     cbuffer_t* cp_buf = (cbuffer_t*) malloc(sizeof(cbuffer_t));
+    if(cp_buf == NULL) fatal("in copy_text() while trying to allocate memory for cp_buf");
     cp_buf->buf = (char*) malloc(bytes_read);
+    if(cp_buf->buf == NULL) fatal("in copy_text() while trying to allocate memory for cp_buf->buf");
     cp_buf->bytes = bytes_read;
     fread(cp_buf->buf, cp_buf->bytes, 1, fp);
     return cp_buf;
@@ -300,19 +308,19 @@ void extract_author() {
     assert(reads != 0); // This has to be changed into a print to screen and early return
 
     // chooses a random line.
-    srand(time(NULL));
-    int r = rand() % reads;
-    go_to_line(r, fp);
+    int rline = gen_limited_randint(reads);
+    go_to_line(rline, fp);
     // At this point the file pointer points at the
     // start of the line to extract
 
     int bytes_read = estimate_read_length(fp);
     char* extracted = (char*) malloc(sizeof(char) * bytes_read + 1);
+    if(extracted == NULL) fatal("in extract_author() while trying to allocate memory for extracted");
     fread(extracted, bytes_read + 1, 1, fp);
     extracted[bytes_read] = '\0';
     // Now the lines before and after the extracted lines are copied
-    cbuffer_t* cp_before_line = copy_text(fp, 0, r);
-    cbuffer_t* cp_after_line = copy_text(fp, r + 1, reads);
+    cbuffer_t* cp_before_line = copy_text(fp, 0, rline);
+    cbuffer_t* cp_after_line = copy_text(fp, rline + 1, reads);
     // Writes the first line and truncates
     write_first_line(fp, extracted);
     // Writes back copied text
