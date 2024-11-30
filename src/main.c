@@ -6,11 +6,6 @@
 
 #define A 2 
 #define MENU ("\nWelcome to Author Picker:\n1.[I]nsert an author\n2.[E]xtract an author\n3.[Q]uit\n")
-#define INPUT ("> ")
-
-void flush_stdin() {
-    while(getchar() != '\n' && getchar() != EOF);
-}
 
 int parse_input(char action, char* buf){
     assert('A' <= action && action <= 'z');
@@ -35,8 +30,14 @@ int parse_input(char action, char* buf){
     }
 }
 
+void check_config(){
+    FILE* config = fopen(get_config_file(), "r");
+    if(config != NULL) return;
+    setup_config(NULL);
+}
 
 int main(int argc, char** argv) {
+    check_config();
     char action;
     char buffer[AUTHOR_LEN] = {'\0'};
     int running = 1;

@@ -13,10 +13,11 @@
 #define FIRST_LINE_TEXT "LAST EXTRACTED: "
 #define FIRST_LINE_OFFST 17
 
-struct first_line_cnt { //CNT SHORT FOR CONTENT
-    char* auth_name;
-    formatted_time_t time;
-};
+
+typedef struct remaining_time {
+    int pt;
+    struct tm* expiration_date;
+} rem_time_t;
 
 // Basically somewhat of a string: it makes it easier to do operations of copying and writing
 typedef struct char_buffer { 
@@ -24,7 +25,7 @@ typedef struct char_buffer {
     int bytes;
 } cbuffer_t;
 
-const char datafile[20] = "./out/author_db.txt";
+const char datafile[] = "./out/author_db.txt";
 
 /*
     Creates file and compiles the first line.
@@ -35,7 +36,8 @@ FILE* initialize_file(){
     char first_line[FIRST_LINE_OFFST];
     strncpy(first_line, FIRST_LINE_TEXT, FIRST_LINE_OFFST);
     fwrite(first_line, len_of_str(first_line, FIRST_LINE_OFFST), 1, fp);
-    fwrite("dd/mm/yyyy hh:mm:ss\n", FORMATTED_TIME_LEN + 1, 1, fp);
+    fwrite(FORMATTED_TIME_STR, len_of_str(FORMATTED_TIME_STR, FORMATTED_TIME_LEN), 1, fp);
+    fwrite("\n", 1 ,1 ,fp);
     return fp;
 }
 
@@ -53,7 +55,8 @@ int estimate_read_length(FILE* fp) {
     int bytes_read = 0;
     char c;
     while( (c = fgetc(fp)) != '\n' && c != (EOF)) bytes_read++;
-    fseek(fp, -1 * (bytes_read + 1), SEEK_CUR); // + 1 for '\n'
+    int bytes_back = c == EOF ? bytes_read : (bytes_read + 1);
+    fseek(fp, -1 * bytes_back, SEEK_CUR); // + 1 for '\n'
     return bytes_read;
 }
 
@@ -145,8 +148,9 @@ void append_author(FILE* fp, char* auth_name){
 void read_extracted_auth(FILE* fp,char* rbuf){
     fseek(fp, FIRST_LINE_OFFST - 1, SEEK_SET);
     int b = estimate_read_length(fp);
-    b -= FORMATTED_TIME_LEN + 1; // Counting the space after the name
-    fread(rbuf, b + 1, 1, fp);
+    b -= FORMATTED_TIME_LEN - 1; // Not counting the space after the name
+    b = b == 0 ? 0 : b - 1; // Counting the space 
+    fread(rbuf, b, 1, fp);
     rbuf[b] = '\0';
     printf("[DEBUG:read_extracted_auth()] INPUT READ: %s\n", rbuf);
 }
@@ -191,7 +195,8 @@ void insert_author(char* author_name) {
     // THE FIRST LINE OF THE FILE WILL CONTAIN THE AUTHOR THAT WAS LAST EXTRACTED
 
     assert( strlen(author_name) != 0 ); // This has to be changed into an print to screen and early return
-
+    char* auth_name = trim(author_name);
+    
     FILE* fp = fopen(datafile, "r+");
     if(fp == NULL){
         fp = initialize_file();
@@ -199,12 +204,14 @@ void insert_author(char* author_name) {
 
     
 
-    if( search_author(fp, author_name) == 1 ){
-        printf("%s was previously inserted!\n", author_name);
+    if( search_author(fp, auth_name) == 1 ){
+        printf("%s was previously inserted!\n", auth_name);
+        free(auth_name);
         return;
     }
 
-    append_author(fp, author_name);
+    append_author(fp, auth_name);
+    free(auth_name);
 
     if(fclose(fp) != 0) {
         fatal("in insert_author() while closing file");
@@ -251,11 +258,10 @@ void write_first_line(FILE* fp, char* buf){
     fseek(fp, FIRST_LINE_OFFST-1, SEEK_SET);
     fwrite(buf, len_of_str(buf, AUTHOR_LEN), 1, fp);
     fwrite(" ", 1, 1, fp);
-    formatted_time_t* ftime = get_current_time();
+    struct tm* ftime = get_current_time();
     char* str_ftime = ftime_to_string(ftime);
     fwrite(str_ftime, len_of_str(str_ftime, MAX_STR_LEN) , 1, fp);
     free(str_ftime);
-    free(ftime);
     fwrite("\n", 1, 1, fp);
     int written_bytes = FIRST_LINE_OFFST + len_of_str(buf,AUTHOR_LEN);
     truncate(datafile, written_bytes);
@@ -296,6 +302,66 @@ void copy_back_txt(cbuffer_t* lines_before, cbuffer_t* lines_after, FILE* fp){
     fwrite(lines_after->buf, lines_after->bytes, 1, fp);
 }
 
+char* read_extraction_time(FILE* fp){
+    char buf[AUTHOR_LEN];
+    read_extracted_auth(fp, buf);
+    // After the call to this function the file pointer is at
+    // the start of the time string
+    char* ext_t = (char* ) malloc(FORMATTED_TIME_LEN);
+    if(ext_t == NULL) fatal("in read_extraction_time() while allocating memory");
+    char c = fgetc(fp); // SKIPPING SPACE;
+    if(c != ' ') fseek(fp, -1, 1);
+    fread(ext_t, FORMATTED_TIME_LEN - 1, 1, fp);
+    ext_t[FORMATTED_TIME_LEN - 1] = '\0';
+    return ext_t;
+}
+
+enum passed_time read_config(){
+    FILE* fconfig = fopen(get_config_file(), "r");
+    if(fconfig == NULL) fatal("in evaluate_time_passed() while opening config file");
+    
+    char cfg;
+    fread(&cfg, 1, 1, fconfig);
+    enum passed_time pt;
+    switch (cfg){
+        case 'h':   pt = HOUR; 
+                    break;
+        case 'd':   pt = DAY;
+                    break;
+        case 'w':   pt = WEEK;
+                    break;
+        case 'm':   pt = MONTH;
+                    break;
+        default:    fclose(fconfig);
+                    setup_config("It looks like there is something wrong with the config file.\nLet's set it up again!\n");
+                    return read_config();
+    }
+    fclose(fconfig);
+    return pt;
+}
+
+rem_time_t* evaluate_time_passed(FILE* fp){
+    
+    char* ext_time_str = read_extraction_time(fp);
+    if(!is_time(ext_time_str)){ 
+        free(ext_time_str);
+        return NULL;
+    }
+    printf("[DEBUG:read_extr_time()] %s\n", ext_time_str);
+    struct tm* ftime = str_to_ftime(ext_time_str);
+    free(ext_time_str);
+
+    enum passed_time pt = read_config();
+
+    rem_time_t* rem = (rem_time_t*) malloc(sizeof(rem_time_t));
+    rem->pt = cmp_ftime(ftime, get_current_time(), pt);
+    rem->expiration_date = calculate_expiration(ftime, pt);
+    free(ftime);
+
+    return rem;
+}
+
+
 void extract_author() {
     // At this point the file should exist
     FILE* fp = fopen(datafile, "r+");
@@ -303,10 +369,22 @@ void extract_author() {
         fatal("in extract_author() while opening file");
     }
 
+    rem_time_t* rt = evaluate_time_passed(fp);
+    if(rt != NULL)
+        if(rt->pt == 0){
+            printf("Cannot extract another author until %s", ftime_to_string(rt->expiration_date));
+            free(rt);
+            return;
+        }
+    free(rt);
+
     int reads = num_of_authors(fp); 
 
-    assert(reads != 0); // This has to be changed into a print to screen and early return
-
+    if(reads == 0){
+        printf("There are no authors to extract.\nInsert some!");
+        return;
+    } 
+    
     // chooses a random line.
     int rline = gen_limited_randint(reads);
     go_to_line(rline, fp);
@@ -318,6 +396,7 @@ void extract_author() {
     if(extracted == NULL) fatal("in extract_author() while trying to allocate memory for extracted");
     fread(extracted, bytes_read + 1, 1, fp);
     extracted[bytes_read] = '\0';
+
     // Now the lines before and after the extracted lines are copied
     cbuffer_t* cp_before_line = copy_text(fp, 0, rline);
     cbuffer_t* cp_after_line = copy_text(fp, rline + 1, reads);

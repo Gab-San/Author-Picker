@@ -5,6 +5,14 @@
 #include <string.h>
 
 #define ERR_MSG_LEN 100
+#define SETUP_DIALOG ("Setting up config file...\n\nHow much time do you want to restrict yourself from extracting a new author's name?\n")
+#define DIALOG_OPTIONS ("[H]OUR\n[D]AY\n[W]EEK\n[M]ONTH\n")
+
+const char auth_config_path[] = "./out/config.txt";
+
+void flush_stdin() {
+    while(getchar() != '\n' && getchar() != EOF);
+}
 
 int len_of_str(char* buffer, size_t max_len){
     int counter = 0;
@@ -45,4 +53,81 @@ void fatal(const char* msg){
 void report_fatal_error(const char* msg){
     fprintf(stderr, "ERROR: %s\n", msg);
     exit(-1);
+}
+
+const char* get_config_file(){
+    return auth_config_path;
+}
+
+void setup_config(const char* optional_dialog){
+    FILE* config = fopen(get_config_file(), "w");
+    if(config == NULL) fatal("in setup_config() while opening config file");
+    if(optional_dialog != NULL) printf("%s", optional_dialog);
+    printf(SETUP_DIALOG);
+    printf(DIALOG_OPTIONS);
+    printf(INPUT);
+    
+    char input = getchar() + '\0';
+    flush_stdin();
+    char low_in = conv_to_lower(input);
+    
+    while(low_in != 'w' && low_in != 'h' && low_in != 'd' && low_in != 'm'){
+        printf("Inserted option not valid!\nPlease insert a valid option!\n");
+        printf(INPUT);
+        input = getchar() + '\0';
+        flush_stdin();
+        low_in = conv_to_lower(input);
+    };
+    
+    fwrite(&low_in, 1, 1, config);
+    
+    fclose(config);
+}
+
+int unsafe_len_of_str(char* buf){
+    int count = 0;
+    while(buf[count] != '\0') count++;
+    return count;
+}
+
+char* trim(char* mod_str){
+    char* front = mod_str;
+    char* end = mod_str + unsafe_len_of_str(mod_str) - 1;
+    
+    if(mod_str == NULL) return NULL;
+    if (unsafe_len_of_str(mod_str) == 0) return NULL;
+    if (*front == '\0'){
+        char* trimmed_str = (char*) malloc(1);
+        trimmed_str[0] = '\0';
+        return trimmed_str;
+    }
+
+    while(*front == ' ') front++;
+    if(front == end){ 
+        char* trimmed_str = (char*) malloc(1);
+        trimmed_str[0] = '\0';
+        return trimmed_str;
+    }
+    while(*end == ' ' && front != end) end--;
+
+    if(front == end){
+        char* trimmed_str = (char*) malloc(1);
+        trimmed_str[0] = '\0';
+        return trimmed_str;
+    }
+    
+    char* p = front;
+    int len = 0;
+    while(p != (end + 1)){
+        len++;
+        p++;
+    }
+
+    char* trimmed_str = (char*) malloc(len + 1);
+    for(int i = 0; front != (end + 1); front++, i++){
+        trimmed_str[i] = *front;
+    }
+
+    trimmed_str[len] = '\0';
+    return trimmed_str;
 }

@@ -2,6 +2,7 @@
 #define HELPER_LIB_H
 
 #include <stdio.h>
+#define INPUT ("> ")
 
 /*
     Difference between 'a' and 'A'.
@@ -81,4 +82,13 @@ char conv_to_lower(char c);
 void fatal(const char* msg);
 
 void report_fatal_error(const char* msg);
+
+const char* get_config_file();
+
+void setup_config(const char* optional_dialog);
+
+void flush_stdin();
+
+char* trim(char* mod_str);
+
 #endif
