@@ -7,11 +7,10 @@
 #define FORMATTED_TIME_LEN 19
 
 enum Passed_Time {
-    HOUR,
-    DAY,
-    WEEK,
-    MONTH,
-    YEAR
+    HOUR,   // Considering 1 hour
+    DAY,    // Counting 1 day
+    WEEK,   // Counting 7 days
+    MONTH,  // Averaged at 30 days
 };
 
 struct tm* get_current_time();
