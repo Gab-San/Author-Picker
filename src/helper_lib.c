@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define ERR_MSG_LEN 100
-#define SETUP_DIALOG ("Setting up config file...\n\nHow much time do you want to restrict yourself from extracting a new author's name?\n")
+#define SETUP_DIALOG ("Setting up config file...\n\nHow much time do you want to wait before extracting a new author's name?\n")
 #define DIALOG_OPTIONS ("[H]OUR\n[D]AY\n[W]EEK\n[M]ONTH\n")
 
 const char auth_config_path[] = "./out/config.txt";
@@ -39,6 +39,14 @@ char conv_to_upper(char c){
 char conv_to_lower(char c) {
     // if it's already a lower letter it doesn't get converted
     return cmp_eq_char(c, 'a', 'z') || !cmp_eq_char(c, 'A', 'z') ? c : c + CHAR_DIFF;
+}
+
+void str_to_lower(char* buffer){
+    char* c = buffer;
+    while(*c != '\0'){
+        *c = conv_to_lower(*c);
+        c++;
+    }
 }
 
 void fatal(const char* msg){

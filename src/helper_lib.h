@@ -73,6 +73,8 @@ char conv_to_upper(char c);
 */
 char conv_to_lower(char c);
 
+void str_to_lower(char* buffer);
+
 /*
     Prints the error message and aborts the program.
 

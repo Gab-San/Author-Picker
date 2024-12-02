@@ -152,7 +152,7 @@ void read_extracted_auth(FILE* fp,char* rbuf){
     b = b == 0 ? 0 : b - 1; // Counting the space 
     fread(rbuf, b, 1, fp);
     rbuf[b] = '\0';
-    printf("[DEBUG:read_extracted_auth()] INPUT READ: %s\n", rbuf);
+    // printf("[DEBUG:read_extracted_auth()] INPUT READ: %s\n", rbuf);
 }
 
 /*
@@ -175,7 +175,7 @@ int search_author(FILE* fp, char* auth){
         bytes_read = estimate_read_length(fp);
         fread(input_read, bytes_read + 1, 1, fp);
         input_read[bytes_read] = '\0'; // SUBSTITUTE '\n' with '\0'
-        printf("INPUT: %s\n", input_read);
+        // printf("INPUT: %s\n", input_read);
         // ALL OF THE SUBSTRING OF INPUT_READ ARE CONSIDERED EQUAL aaa == aa
         if( len_of_str(input_read, AUTHOR_LEN) == len_of_str(auth, AUTHOR_LEN) && 
             strncmp(input_read, auth, len_of_str(auth,AUTHOR_LEN)) == 0 ) return 1;
@@ -347,7 +347,7 @@ rem_time_t* evaluate_time_passed(FILE* fp){
         free(ext_time_str);
         return NULL;
     }
-    printf("[DEBUG:read_extr_time()] %s\n", ext_time_str);
+    // printf("[DEBUG:read_extr_time()] %s\n", ext_time_str);
     struct tm* ftime = str_to_ftime(ext_time_str);
     free(ext_time_str);
 

@@ -16,6 +16,7 @@ int parse_input(char action, char* buf){
         printf("Insert the name of the author: ");
         read_line(buf, AUTHOR_LEN);
         flush_stdin();
+        str_to_lower(buf);
         printf("Inserting %s...\n", buf);
         insert_author(buf);
         return 1;

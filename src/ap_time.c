@@ -21,7 +21,7 @@ struct tm* str_to_ftime(char* stime){
     sscanf(stime, "%02d/%02d/%04d %02d:%02d:%02d",  &dd, &mm, &yy, 
                                                     &h, &m, &s);
     
-    printf("[DEBUG:str_to_ftime()] %d %d %d %d %d %d\n", dd, mm, yy, h ,m, s);
+    // printf("[DEBUG:str_to_ftime()] %d %d %d %d %d %d\n", dd, mm, yy, h ,m, s);
     struct tm* timeinfo = (struct tm*) malloc(sizeof(struct tm));
     strptime(stime, "%d/%m/%Y %H:%M:%S", timeinfo);
     return timeinfo;
