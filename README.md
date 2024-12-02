@@ -64,8 +64,12 @@ If you request another extraction before the time limit has expired then your re
 
 
 # Contributing
-
-Still reading the [guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors).
+This repository is completely open to contribution but I might not be able to completely support you. Docs will be completed as soon as possible.
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature-name`.
+3. Make your changes.
+4. Push your branch: `git push origin feature-name`.
+5. Create a pull request.
 
 # What's Next
 
