@@ -8,7 +8,7 @@ This simple program lets you write down authors or albums you want to listen to 
 
 # Installation
 
-> WARNING!: C compiler is needed to install this software.
+> WARNING! C compiler is needed to install this software.
 
 > This software was not tested on Mac or Windows (only on wsl).
 
@@ -25,11 +25,11 @@ This simple program lets you write down authors or albums you want to listen to 
             - `gcc -c -g -o lib/ap_time_lib src/ap_time.c`
         2. Then you can compile and link the main:
             - Make an output folder named *out* (`mkdir out/`)
-            -`gcc -g -o out/out src/main.c lib/author_picker_lib lib/helper_lib lib/ap_time_lib`
+            - `gcc -g -o out/out src/main.c lib/author_picker_lib lib/helper_lib lib/ap_time_lib`
 4. Run the program: `./out/out`
 
 ### Runnable bash file
-> To facilitate step 3 I wrote a little bash program that will automatically run the program.
+> To facilitate step 4 I wrote a little bash program that will automatically run the program.
 Copy paste the following code in a file_name.sh file:
 ```bash
 #! bin/bash
@@ -64,8 +64,12 @@ If you request another extraction before the time limit has expired then your re
 
 
 # Contributing
-
-Still reading the [guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors).
+This repository is completely open to contribution but I might not be able to completely support you. Docs will be completed as soon as possible.
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature-name`.
+3. Make your changes.
+4. Push your branch: `git push origin feature-name`.
+5. Create a pull request.
 
 # What's Next
 
