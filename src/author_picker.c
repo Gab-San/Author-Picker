@@ -372,8 +372,10 @@ void extract_author() {
     rem_time_t* rt = evaluate_time_passed(fp);
     if(rt != NULL)
         if(rt->pt == 0){
-            printf("Cannot extract another author until %s", ftime_to_string(rt->expiration_date));
+            char* exp_date = ftime_to_string(rt->expiration_date);
+            printf("Cannot extract another author until %s", exp_date);
             free(rt);
+            free(exp_date);
             return;
         }
     free(rt);

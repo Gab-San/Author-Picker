@@ -18,11 +18,13 @@ int gen_limited_randint(int upper_bound){
 
 struct tm* str_to_ftime(char* stime){
     int dd, mm, yy, h, m, s;
-    sscanf(stime, "%02d/%02d/%04d %02d:%02d:%02d",  &dd, &mm, &yy, 
+    sscanf(stime, " %02d/%02d/%04d %02d:%02d:%02d ",  &dd, &mm, &yy, 
                                                     &h, &m, &s);
     
     // printf("[DEBUG:str_to_ftime()] %d %d %d %d %d %d\n", dd, mm, yy, h ,m, s);
     struct tm* timeinfo = (struct tm*) malloc(sizeof(struct tm));
+    // Works only if _XOPEN_SOURCE 700 is defined (before everyting)
+    // there are other solution that can be found on stack overflow
     strptime(stime, "%d/%m/%Y %H:%M:%S", timeinfo);
     return timeinfo;
 }
@@ -65,31 +67,34 @@ int cmp_ftime(struct tm* t1, struct tm* t2, enum passed_time pt){
     }
 }
 
-struct tm* calculate_expiration(struct tm* textr, enum passed_time pt){
-    assert(textr != NULL);
-    time_t ttextr = mktime(textr);
+struct tm* calculate_expiration(struct tm* t1, enum passed_time pt){
+    assert(t1 != NULL);
+    time_t tt1 = mktime(t1);
     
     switch (pt)
     {
     case HOUR:
-        ttextr += SECS_IN_HOUR;
+        tt1 += SECS_IN_HOUR;
         break;
     case DAY:
-        ttextr += SECS_IN_DAY;
+        tt1 += SECS_IN_DAY;
         break;
     case WEEK:
-        ttextr += SECS_IN_DAY * 7;
+        tt1 += SECS_IN_DAY * 7;
         break;
     case MONTH:
-        ttextr += SECS_IN_DAY * 30;
+        tt1 += SECS_IN_DAY * 30;
         break;
     }
 
-    return localtime(&ttextr);
+    return localtime(&tt1);
 }
 
 int is_time(char* stime){
-    // The way time is formatted it's only numbers
-    if(stime[0] < '0' || stime[0] > '9') return 0;
-    return 1;
+    char* strtime = trim(stime);
+    int dd, mm, yy, h, m, s;
+    int num_of_it = sscanf(strtime, " %02d/%02d/%04d %02d:%02d:%02d ",  &dd, &mm, &yy, 
+                                                    &h, &m, &s);
+    free(strtime);
+    return num_of_it == 6;
 }
