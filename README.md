@@ -39,18 +39,25 @@ Then you can simply run `./file_name.sh`
 
 # Usage
 
+- [Insert](#insert)
+- [Extract](#extract)
+- [View](#view)
+
 To run use  `./out/out` or if you wrote the [runnable bash file](#runnable-bash-file) simply run `./file_name.sh`
+
+> Disclaimer! Most of the inputs can be deduced from the menus. The character(s) in between square brackets show what should be the input.
 
 On the first start-up, the first screen that will appear will lets you choose how much time you want to wait before the next extraction command will be accepted:
 
 ![Choose-Limit](./images/tutorial/choose_limit.png)
 
 After which the menu appears, right now there are only a couple actions that you can do. (Check [what's next](#whats-next) for more info)
-
+## Insert
 The current available actions are *insert*:
 
 ![Insert](./images/tutorial/insert_example.png)
 
+## Extract
 that lets you insert an author name;\
 And *extract*:
 
@@ -62,6 +69,20 @@ If you request another extraction before the time limit has expired then your re
 
 ![Deny-Extract](./images/tutorial/denied_extraction.png)
 
+## View
+You can view the extracted author or the other inserted ones by using the *view* command:
+
+![View-All](./images/tutorial/view_all.png)
+
+![View-Extracted](./images/tutorial/view_extracted.png)
+
+If the input command is incorrect the following screen will be shown:
+
+![Incorrect-View-Input](./images/tutorial/incorrect_view_input.png)
+
+When in _view all_, in order to stop scrolling authors input `q` when the input appears:
+
+![Quit-View](./images/tutorial/quit_view.png) 
 
 # Contributing
 This repository is completely open to contribution but I might not be able to completely support you. Docs will be completed as soon as possible.
@@ -71,12 +92,15 @@ This repository is completely open to contribution but I might not be able to co
 4. Push your branch: `git push origin feature-name`.
 5. Create a pull request.
 
+# Implemented features
+
+View: 00-view-all
+
 # What's Next
 
 My intentions are not to develop further this software with new functionalities. I consider this program finished and working like I intended it to.
 
 I will try to add some other actions like:
-- checking the catalog;
 - changing the config file in order to have more flexible limits;
 - make the programs prints and outputs be more verbose;
 
