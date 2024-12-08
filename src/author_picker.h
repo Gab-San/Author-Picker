@@ -24,7 +24,11 @@ void extract_author();
 //     Searches and removes from the file the selected author's name.
 // */
 // void remove_author(char* author_name);
-// void read_authors();
+
+/*
+    Prints out all of the authors currently inserted
+*/
+void view();
 // void find_author(char* author_name);
 
 #endif
