@@ -1,4 +1,4 @@
-# Author-Picker [PROJECT ON HOLD]
+# <img src="/images/author-picker-logo.png" alt="Description of image" style="width:40px;height:40px;"/> Author-Picker
 This simple program lets you write down authors or albums you want to listen to and then, whenever you feel like it, you can extract a new author as a suggestion for your next music session!
 
 # Table of Contents
@@ -53,17 +53,15 @@ On the first start-up, the first screen that will appear will lets you choose ho
 
 After which the menu appears, right now there are only a couple actions that you can do. (Check [what's next](#whats-next) for more info)
 ## Insert
-The current available actions are *insert*:
+*Insert* lets you insert an author into the database:
 
 ![Insert](./images/tutorial/insert_example.png)
 
+
 ## Extract
-that lets you insert an author name;\
-And *extract*:
+*Extract* lets you extract an author and set an expiration date to wait for your next extraction:
 
 ![Appr-Extract](./images/tutorial/approved_extraction.png)
-
-that lets you extract an author.
 
 If you request another extraction before the time limit has expired then your request will be denied:
 
@@ -105,4 +103,9 @@ I will try to add some other actions like:
 - make the programs prints and outputs be more verbose;
 
 -----
+Since I'm proud of my little work:
+<h1 align="center">
+    <img src="/images/author-picker-logo.png" alt="">
+</h1>
+
 Be sure to check the [wiki](https://github.com/Gab-San/Author-Picker/wiki)!
