@@ -25,6 +25,7 @@ void read_line(char *buffer, size_t max_len) {
     snprintf(format, sizeof(format), "%%%ld[0-9A-z ]", max_len - 1);
     // printf("FORMAT: %s\n", format);
     scanf(format, buffer);
+    flush_stdin();
 }
 
 int cmp_eq_char(char c, char extr_min, char extr_max){

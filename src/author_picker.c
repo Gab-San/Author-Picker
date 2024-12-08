@@ -9,10 +9,10 @@
 #include <time.h>
 #include <unistd.h>
 
-#define READ_LEN 100
+typedef enum bool{true = 1, false = 0} boolean;
+
 #define FIRST_LINE_TEXT "LAST EXTRACTED: "
 #define FIRST_LINE_OFFST 17
-
 
 typedef struct remaining_time {
     int pt;
@@ -161,13 +161,13 @@ void read_extracted_auth(FILE* fp,char* rbuf){
     # RETURNS
     Returns 0 if there's no match, otherwise 1.
 */
-int search_author(FILE* fp, char* auth){
+boolean search_author(FILE* fp, char* auth){
     char input_read[AUTHOR_LEN] = {'\0'};
     int bytes_read;
     read_extracted_auth(fp, input_read);
 
     if( len_of_str(input_read, AUTHOR_LEN) == len_of_str(auth,AUTHOR_LEN) && 
-        strncmp(input_read, auth, len_of_str(auth, AUTHOR_LEN)) == 0) return 1;
+        strncmp(input_read, auth, len_of_str(auth, AUTHOR_LEN)) == 0) return true;
 
     skip_first_line(fp);
 
@@ -178,10 +178,10 @@ int search_author(FILE* fp, char* auth){
         // printf("INPUT: %s\n", input_read);
         // ALL OF THE SUBSTRING OF INPUT_READ ARE CONSIDERED EQUAL aaa == aa
         if( len_of_str(input_read, AUTHOR_LEN) == len_of_str(auth, AUTHOR_LEN) && 
-            strncmp(input_read, auth, len_of_str(auth,AUTHOR_LEN)) == 0 ) return 1;
+            strncmp(input_read, auth, len_of_str(auth,AUTHOR_LEN)) == 0 ) return true;
     }while(bytes_read != 0);
 
-    return 0;
+    return false;
 }   
 
 void insert_author(char* author_name) {
@@ -204,7 +204,7 @@ void insert_author(char* author_name) {
 
     
 
-    if( search_author(fp, auth_name) == 1 ){
+    if( search_author(fp, auth_name) == true ){
         printf("%s was previously inserted!\n", auth_name);
         free(auth_name);
         return;
@@ -217,13 +217,6 @@ void insert_author(char* author_name) {
         fatal("in insert_author() while closing file");
     }
 }
-
-void remove_author(char* author_name){
-
-}
-
-// void read_authors(){}
-// void find_author(char* author_name) {}
 
 /*
     Evaluates the number of authors inserted in the file.
@@ -305,12 +298,12 @@ void copy_back_txt(cbuffer_t* lines_before, cbuffer_t* lines_after, FILE* fp){
 char* read_extraction_time(FILE* fp){
     char buf[AUTHOR_LEN];
     read_extracted_auth(fp, buf);
-    // After the call to this function the file pointer is at
-    // the start of the time string
     char* ext_t = (char* ) malloc(FORMATTED_TIME_LEN);
     if(ext_t == NULL) fatal("in read_extraction_time() while allocating memory");
+    // After the call to this function the file pointer is at
+    // the start of the time string
     char c = fgetc(fp); // SKIPPING SPACE;
-    if(c != ' ') fseek(fp, -1, 1);
+    if(c != ' ') fseek(fp, -1, 1); // In the first iteration there is no space to skip
     fread(ext_t, FORMATTED_TIME_LEN - 1, 1, fp);
     ext_t[FORMATTED_TIME_LEN - 1] = '\0';
     return ext_t;
@@ -336,7 +329,7 @@ enum passed_time read_config(){
                     setup_config("It looks like there is something wrong with the config file.\nLet's set it up again!\n");
                     return read_config();
     }
-    fclose(fconfig);
+    if( fclose(fconfig) != 0 ) fatal("in read_config() while closing config file");
     return pt;
 }
 
@@ -347,7 +340,7 @@ rem_time_t* evaluate_time_passed(FILE* fp){
         free(ext_time_str);
         return NULL;
     }
-    // printf("[DEBUG:read_extr_time()] %s\n", ext_time_str);
+
     struct tm* ftime = str_to_ftime(ext_time_str);
     free(ext_time_str);
 
@@ -415,4 +408,83 @@ void extract_author() {
     printf("%s extracted!\n", extracted);
     free(extracted);
     if(fclose(fp) != 0) fatal("in extract_author() while closing file");
+}
+
+// The options are "all" and "ext" both 3 letters
+#define VIEW_ACTION_LEN 5
+#define VIEW_DIALOG ("-. [ALL] AUTHORS\n-. [EXT]RACTED AUTHOR\n-. [BACK]\n")
+#define PRINT_INPUT (": ")
+
+
+void print_inserted_authors(){
+    FILE* fp = fopen(datafile, "r");
+    if (fp == NULL){
+        fatal("in print_inserted_authors() while opening file");
+    }
+
+    char input_read[AUTHOR_LEN + 1];
+    int bytes = 1;
+    char cont = '\n';
+    skip_first_line(fp);
+    printf("\n__INSERTED AUTHORS__\n");
+    while(conv_to_lower(cont) != 'q' && bytes != 0){
+        int count = 0;
+        const int max_count = 20;
+        do{
+            bytes = estimate_read_length(fp);
+            fread(input_read, bytes + 1, 1, fp);
+            input_read[bytes] = '\0';
+            if(len_of_str(input_read, AUTHOR_LEN + 1) > 0) printf("%s\n", input_read);
+            count++;
+        }while(bytes != 0 && count < max_count);
+
+        if(bytes == 0) continue;
+        
+        printf(PRINT_INPUT);
+        cont = getchar() + '\0';
+        if(cont == '\n') continue;
+        flush_stdin();
+    }
+
+    if( fclose(fp) != 0) fatal("in print_inserted_authors() while closing file");
+}
+
+void print_extracted_author(){
+    FILE* fp = fopen(datafile, "r");
+    if(fp == NULL) fatal("in print_extracted_author() while opening file");
+    char input_read[AUTHOR_LEN + 1];
+    read_extracted_auth(fp, input_read);
+    rem_time_t* rt = evaluate_time_passed(fp);
+    char* exp_t = ftime_to_string(rt->expiration_date);
+    printf("The current extracted author is: %s\nuntil %s\n", input_read, exp_t);
+    free(exp_t);
+    free(rt);
+    if( fclose(fp) != 0 ) fatal("in print_extracted_author() while closing file"); 
+}
+
+void view(){
+    char view_action[VIEW_ACTION_LEN] = {'\0'};
+    boolean valid = true;
+
+    do {
+        printf(VIEW_DIALOG);
+        printf(INPUT);
+        read_line(view_action, VIEW_ACTION_LEN);
+        str_to_lower(view_action);
+
+        if(strcmp("all", view_action) == 0){
+            print_inserted_authors();
+            return;
+        } else if (strcmp("ext", view_action) == 0) {
+            print_extracted_author();
+            return;
+        } else if (strcmp("back", view_action) == 0) {
+            return;
+        } else {
+            valid = false;
+        }
+
+        if(!valid) printf("ERROR: Input not valid!\n");
+
+    }while(!valid);
 }

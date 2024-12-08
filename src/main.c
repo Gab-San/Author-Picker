@@ -4,8 +4,8 @@
 #include "author_picker.h"
 #include "helper_lib.h"
 
-#define A 2 
-#define MENU ("\nWelcome to Author Picker:\n1.[I]nsert an author\n2.[E]xtract an author\n3.[Q]uit\n")
+#define A 2
+#define MENU ("\nWelcome to Author Picker:\n-. [I]nsert an author\n-. [E]xtract an author\n-. [V]iew\n-. [Q]uit\n")
 
 int parse_input(char action, char* buf){
     assert('A' <= action && action <= 'z');
@@ -15,7 +15,6 @@ int parse_input(char action, char* buf){
     case 'i':
         printf("Insert the name of the author: ");
         read_line(buf, AUTHOR_LEN);
-        flush_stdin();
         str_to_lower(buf);
         printf("Inserting %s...\n", buf);
         insert_author(buf);
@@ -23,6 +22,9 @@ int parse_input(char action, char* buf){
     case 'e':
         printf("Extracting...\n");
         extract_author();
+        return 1;
+    case 'v':
+        view();
         return 1;
     case 'q': return 0;
     default:

@@ -33,7 +33,10 @@ struct tm* get_current_time();
     A well-formatted string about time using the format "dd/mm/yyyy hh:mm:ss"
 
     # Output
-    A struct tm of the represented time  
+    A struct tm of the represented time.
+
+    ## Deallocation
+    Deallocation of the pointer returned by this function is delegated to the user!
 */
 struct tm* str_to_ftime(char* stime);
 
@@ -74,6 +77,9 @@ int cmp_ftime(struct tm* t1, struct tm* t2, enum passed_time pt);
 
     # Output
     The time that can be expressed as t1 + pt
+
+    ## Deallocation
+    No deallocation is needed!
 */
 struct tm* calculate_expiration(struct tm* t1, enum passed_time pt);
 
