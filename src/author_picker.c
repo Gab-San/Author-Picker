@@ -11,9 +11,6 @@
 
 typedef enum bool{true = 1, false = 0} boolean;
 
-#define FIRST_LINE_TEXT "LAST EXTRACTED: "
-#define FIRST_LINE_OFFST 17
-
 typedef struct remaining_time {
     int pt;
     struct tm* expiration_date;
@@ -26,6 +23,10 @@ typedef struct char_buffer {
 } cbuffer_t;
 
 const char datafile[] = "./db/author_db.txt";
+
+
+#define FIRST_LINE_TEXT "LAST EXTRACTED: "
+#define FIRST_LINE_OFFST 17
 
 /*
     Creates file and compiles the first line.
@@ -61,34 +62,17 @@ int estimate_read_length(FILE* fp) {
 }
 
 /*
-    Moves the cursor to the end of the first line.
-    
-    The first line is the one that states which name
-    was last extracted.
-
-    # RETURNS
-    Returns the bytes read on the first line (newline included).
-*/
-int skip_first_line(FILE* fp){
-    fseek(fp, FIRST_LINE_OFFST - 1, SEEK_SET);  // The last char in the offset is either the '\n' (discarded by estimate_read_length)
-                                                // or is the first letter of the first-line formatted write 
-    int bytes_read = estimate_read_length(fp);
-    fseek(fp, bytes_read + 1, SEEK_CUR); // + 1 counting for '\n'
-    return bytes_read + FIRST_LINE_OFFST;
-}
-
-/*
     Moves the file cursor to the start of the requested line.
-    The first line is always skipped, this means that there's an offset of 1.
     
     # INPUT
-    Line to reach offset by one. Line 0 is effectively line 1.
+    Line to go to. The cursor will be positioned at the start of the line.
 
     # RETURNS
     The value of bytes read (including newline) 
 */
 int go_to_line(int line, FILE* fp) {
-    int total_bytes_read = skip_first_line(fp);
+    fseek(fp, 0, SEEK_SET);
+    int total_bytes_read = 0;
     int count = 0;
     char c;
 
@@ -108,6 +92,23 @@ int go_to_line(int line, FILE* fp) {
 }
 
 /*
+    Moves the cursor to the end of the first line.
+    
+    The first line is the one that states which name
+    was last extracted.
+
+    # RETURNS
+    Returns the bytes read on the first line (newline included).
+*/
+int skip_first_line(FILE* fp){
+    fseek(fp, FIRST_LINE_OFFST - 1, SEEK_SET);  // The last char in the offset is either the '\n' (discarded by estimate_read_length)
+                                                // or is the first letter of the first-line formatted write 
+    int bytes_read = estimate_read_length(fp);
+    fseek(fp, bytes_read + 1, SEEK_CUR); // + 1 counting for '\n'
+    return bytes_read + FIRST_LINE_OFFST;
+}
+
+/*
     Starting from the from_line moves the cursor to the start of the to_line.
 
     # INPUT
@@ -121,6 +122,7 @@ int go_to_line(int line, FILE* fp) {
     Returns the number of bytes read during this operation (including newlines)
 */
 int skip_to_line_from(int from_line, int to_line, FILE* fp){
+    go_to_line(from_line, fp);
     int count = from_line;
     int bytes_read = 0;
     char c;
@@ -160,6 +162,9 @@ void read_extracted_auth(FILE* fp,char* rbuf){
 
     # RETURNS
     Returns 0 if there's no match, otherwise 1.
+
+    ## SIDE EFFECTS
+    Cursor is positioned at the start of the match line
 */
 boolean search_author(FILE* fp, char* auth){
     char input_read[AUTHOR_LEN] = {'\0'};
@@ -175,10 +180,13 @@ boolean search_author(FILE* fp, char* auth){
         bytes_read = estimate_read_length(fp);
         fread(input_read, bytes_read + 1, 1, fp);
         input_read[bytes_read] = '\0'; // SUBSTITUTE '\n' with '\0'
+
         // printf("INPUT: %s\n", input_read);
-        // ALL OF THE SUBSTRING OF INPUT_READ ARE CONSIDERED EQUAL aaa == aa
         if( len_of_str(input_read, AUTHOR_LEN) == len_of_str(auth, AUTHOR_LEN) && 
-            strncmp(input_read, auth, len_of_str(auth,AUTHOR_LEN)) == 0 ) return true;
+            strncmp(input_read, auth, len_of_str(auth,AUTHOR_LEN)) == 0 ){
+                fseek(fp, -1*(bytes_read + 1), SEEK_CUR);
+                return true;
+            }
     }while(bytes_read != 0);
 
     return false;
@@ -253,30 +261,15 @@ void write_first_line(FILE* fp, char* buf){
     fwrite(" ", 1, 1, fp);
     struct tm* ftime = get_current_time();
     char* str_ftime = ftime_to_string(ftime);
-    fwrite(str_ftime, len_of_str(str_ftime, MAX_STR_LEN) , 1, fp);
+    fwrite(str_ftime, FORMATTED_TIME_LEN - 1 , 1, fp);
     free(str_ftime);
     fwrite("\n", 1, 1, fp);
-    int written_bytes = FIRST_LINE_OFFST + len_of_str(buf,AUTHOR_LEN);
+    int written_bytes = FIRST_LINE_OFFST + len_of_str(buf,AUTHOR_LEN) + FORMATTED_TIME_LEN;
     truncate(datafile, written_bytes);
 }
 
-/*
-    Saves the chunk of text from the desired lines.
 
-    # RETURNS
-    Returns a copy-buffer that contains information about
-    the chunk of text read.
-*/
-cbuffer_t* copy_text(FILE* fp, int starting_line, int n_line){
-    go_to_line(starting_line, fp);
-
-    // At this point the program is in extracted-line + 1
-    // The program must copy all of the remaining lines
-    // The number of bytes read from the starting line to the end line 
-    // is the return value of the called func
-    int bytes_read = skip_to_line_from(starting_line, n_line, fp);
-    //GETTING BACK TO THE CORRECT LINE
-    fseek(fp, -1 * bytes_read, SEEK_CUR);
+cbuffer_t* copy_text(FILE*fp, int bytes_read){
     cbuffer_t* cp_buf = (cbuffer_t*) malloc(sizeof(cbuffer_t));
     if(cp_buf == NULL) fatal("in copy_text() while trying to allocate memory for cp_buf");
     cp_buf->buf = (char*) malloc(bytes_read);
@@ -284,6 +277,24 @@ cbuffer_t* copy_text(FILE* fp, int starting_line, int n_line){
     cp_buf->bytes = bytes_read;
     fread(cp_buf->buf, cp_buf->bytes, 1, fp);
     return cp_buf;
+}
+
+/*
+    Saves the chunk of text from the desired lines.
+
+    # INPUT
+    starting_line -> line to start copying from (included)
+    last_line -> stop copying at this line (excluded) 
+
+    # RETURNS
+    Returns a copy-buffer that contains information about
+    the chunk of text read.
+*/
+cbuffer_t* copy_text_from_to(FILE* fp, int starting_line, int last_line){
+    int bytes_read = skip_to_line_from(starting_line, last_line, fp);
+    //GETTING BACK TO THE CORRECT LINE
+    fseek(fp, -1 * bytes_read, SEEK_CUR);
+    return copy_text(fp, bytes_read);
 }
 
 /*
@@ -358,9 +369,7 @@ rem_time_t* evaluate_time_passed(FILE* fp){
 void extract_author() {
     // At this point the file should exist
     FILE* fp = fopen(datafile, "r+");
-    if (fp == NULL) {
-        fatal("in extract_author() while opening file");
-    }
+    if (fp == NULL) fatal("in extract_author() while opening file");
 
     rem_time_t* rt = evaluate_time_passed(fp);
     if(rt != NULL)
@@ -381,7 +390,7 @@ void extract_author() {
     } 
     
     // chooses a random line.
-    int rline = gen_limited_randint(reads);
+    int rline = gen_limited_randint(reads) + 1;
     go_to_line(rline, fp);
     // At this point the file pointer points at the
     // start of the line to extract
@@ -392,9 +401,11 @@ void extract_author() {
     fread(extracted, bytes_read + 1, 1, fp);
     extracted[bytes_read] = '\0';
 
-    // Now the lines before and after the extracted lines are copied
-    cbuffer_t* cp_before_line = copy_text(fp, 0, rline);
-    cbuffer_t* cp_after_line = copy_text(fp, rline + 1, reads);
+    // Now the lines before and after the extracted lines must be copied
+    cbuffer_t* cp_before_line = copy_text_from_to(fp, 1, rline);
+    // Reads is equal to the number of inserted lines. In order to read the last 
+    // author is necessary to count one more line after that.
+    cbuffer_t* cp_after_line = copy_text_from_to(fp, rline + 1, reads + 1);
     // Writes the first line and truncates
     write_first_line(fp, extracted);
     // Writes back copied text
@@ -487,4 +498,45 @@ void view(){
         if(!valid) printf("ERROR: Input not valid!\n");
 
     }while(!valid);
+}
+
+
+int bytes_to_end(FILE* fp){
+    int bytes_read = 0;
+    while(fgetc(fp) != EOF){
+        bytes_read++;
+    }
+    fseek(fp, -1*bytes_read, SEEK_CUR);
+    printf("[DEBUG:bytes_to_end] bytes_read %d\n", bytes_read);
+    return bytes_read;
+}
+
+void remove_author(char* auth_name){
+    assert(strlen(auth_name) != 0);
+
+    FILE* fp = fopen(datafile, "r+");
+    if (!fp) fatal("in remove_author() while opening file");
+
+    if(search_author(fp, auth_name) == false){
+        printf("Author not found!\n\nBe sure to write the name as inserted!\n");
+        return;
+    }
+
+    int auth_bytes = estimate_read_length(fp);
+    fseek(fp, auth_bytes + 1, SEEK_CUR);
+
+
+    int cpy_bytes = bytes_to_end(fp);
+    cbuffer_t* lines_after = copy_text(fp, cpy_bytes);
+
+    fseek(fp, 0, SEEK_SET);
+    int bytes_file_size = bytes_to_end(fp);
+    int bytes_first_line =  bytes_file_size - (auth_bytes + 1 + cpy_bytes);
+    truncate(datafile, bytes_first_line);
+    fseek(fp, bytes_first_line, SEEK_SET);
+    fwrite(lines_after->buf, lines_after->bytes, 1, fp);
+    free(lines_after->buf);
+    free(lines_after);
+
+    if( fclose(fp) != 0 ) fatal("in remove_author() while closing file");
 }
