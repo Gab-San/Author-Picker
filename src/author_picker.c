@@ -25,7 +25,7 @@ typedef struct char_buffer {
     int bytes;
 } cbuffer_t;
 
-const char datafile[] = "./out/author_db.txt";
+const char datafile[] = "./db/author_db.txt";
 
 /*
     Creates file and compiles the first line.

@@ -8,7 +8,7 @@
 #define SETUP_DIALOG ("Setting up config file...\n\nHow much time do you want to wait before extracting a new author's name?\n")
 #define DIALOG_OPTIONS ("[H]OUR\n[D]AY\n[W]EEK\n[M]ONTH\n")
 
-const char auth_config_path[] = "./out/config.txt";
+const char auth_config_path[] = "./db/config.txt";
 
 void flush_stdin() {
     while(getchar() != '\n' && getchar() != EOF);

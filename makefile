@@ -16,10 +16,11 @@ lib/ap_time_lib : src/ap_time.c
 
 out/:
 	mkdir out/
+	mkdir out/db/
 
 lib/:
 	mkdir lib/
 
 clean:
-	rm out/out lib/helper_lib lib/author_picker_lib lib/ap_time_lib out/author_db.txt out/config.txt
-	rmdir out/ lib/
+	rm -r out/ 
+	rm -r lib/
