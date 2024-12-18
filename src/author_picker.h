@@ -20,6 +20,9 @@ void insert_author(char* author_name);
 */
 void extract_author();
 
+
+void find_author(char* author_name);
+
 // /*
 //     Searches and removes from the file the selected author's name.
 // */
