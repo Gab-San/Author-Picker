@@ -32,8 +32,7 @@ const char datafile[] = "./db/author_db.txt";
     Creates file and compiles the first line.
 */
 FILE* initialize_file(){
-    FILE* fp = fopen(datafile, "w+");
-    if(fp == NULL) fatal("in initialize_file() while opening file.");
+    FILE* fp = open_file(datafile, "w+", "initialize_file()");
     char first_line[FIRST_LINE_OFFST];
     strncpy(first_line, FIRST_LINE_TEXT, FIRST_LINE_OFFST);
     fwrite(first_line, len_of_str(first_line, FIRST_LINE_OFFST), 1, fp);
@@ -161,35 +160,32 @@ void read_extracted_auth(FILE* fp,char* rbuf){
     Searches for an equal author name.
 
     # RETURNS
-    Returns 0 if there's no match, otherwise 1.
 
-    ## SIDE EFFECTS
-    Cursor is positioned at the start of the match line
+    Returns -1 if there's no match, otherwise returns the line on which the author is located;
+    the count starts at 0 being the first line (extraction line).
 */
-boolean search_author(FILE* fp, char* auth){
+int search_author(FILE* fp, char* auth){
     char input_read[AUTHOR_LEN] = {'\0'};
     int bytes_read;
+    int line = 0;
+
     read_extracted_auth(fp, input_read);
-
     if( len_of_str(input_read, AUTHOR_LEN) == len_of_str(auth,AUTHOR_LEN) && 
-        strncmp(input_read, auth, len_of_str(auth, AUTHOR_LEN)) == 0) return true;
-
+        strncmp(input_read, auth, len_of_str(auth, AUTHOR_LEN)) == 0) return line;
     skip_first_line(fp);
 
     do{
+        line++;
         bytes_read = estimate_read_length(fp);
         fread(input_read, bytes_read + 1, 1, fp);
         input_read[bytes_read] = '\0'; // SUBSTITUTE '\n' with '\0'
 
         // printf("INPUT: %s\n", input_read);
-        if( len_of_str(input_read, AUTHOR_LEN) == len_of_str(auth, AUTHOR_LEN) && 
-            strncmp(input_read, auth, len_of_str(auth,AUTHOR_LEN)) == 0 ){
-                fseek(fp, -1*(bytes_read + 1), SEEK_CUR);
-                return true;
-            }
+        if( len_of_str(input_read, AUTHOR_LEN) == len_of_str(auth, AUTHOR_LEN) &&
+            strncmp(input_read, auth, len_of_str(auth,AUTHOR_LEN)) == 0 ) return line;
     }while(bytes_read != 0);
 
-    return false;
+    return -1;
 }   
 
 #define MSG_INPUT_ERROR ("\n[INPUT ERROR]: the input has null length, please consider writing at least one character!\n")
@@ -218,7 +214,7 @@ void insert_author(char* author_name) {
 
     
 
-    if( search_author(fp, auth_name) == true ){
+    if( search_author(fp, auth_name) != -1 ){
         printf("%s was previously inserted!\n", auth_name);
         free(auth_name);
         return;
@@ -227,9 +223,7 @@ void insert_author(char* author_name) {
     append_author(fp, auth_name);
     free(auth_name);
 
-    if(fclose(fp) != 0) {
-        fatal("in insert_author() while closing file");
-    }
+    close_file(fp, "insert_author()");
 }
 
 /*
@@ -327,8 +321,7 @@ char* read_extraction_time(FILE* fp){
 }
 
 enum passed_time read_config(){
-    FILE* fconfig = fopen(get_config_file(), "r");
-    if(fconfig == NULL) fatal("in evaluate_time_passed() while opening config file");
+    FILE* fconfig = open_file(get_config_file(), "r", "read_config()");
     
     char cfg;
     fread(&cfg, 1, 1, fconfig);
@@ -342,11 +335,11 @@ enum passed_time read_config(){
                     break;
         case 'm':   pt = MONTH;
                     break;
-        default:    fclose(fconfig);
+        default:    close_file(fconfig, "read_config()");
                     setup_config("It looks like there is something wrong with the config file.\nLet's set it up again!\n");
                     return read_config();
     }
-    if( fclose(fconfig) != 0 ) fatal("in read_config() while closing config file");
+    close_file(fconfig, "read_config()");
     return pt;
 }
 
@@ -374,14 +367,15 @@ rem_time_t* evaluate_time_passed(FILE* fp){
 
 void extract_author() {
     // At this point the file should exist
-    FILE* fp = fopen(datafile, "r+");
-    if (fp == NULL) fatal("in extract_author() while opening file");
+    FILE* fp = open_file(datafile, "r+", "extract_author()");
 
     rem_time_t* rt = evaluate_time_passed(fp);
     if(rt != NULL)
         if(rt->pt == 0){
             char* exp_date = ftime_to_string(rt->expiration_date);
-            printf("Cannot extract another author until %s", exp_date);
+            char curr_auth[AUTHOR_LEN];
+            read_extracted_auth(fp, curr_auth);
+            printf("Cannot extract another author until %s\nCurrent extracted author: %s\n", exp_date, curr_auth);
             free(rt);
             free(exp_date);
             return;
@@ -424,7 +418,7 @@ void extract_author() {
 
     printf("%s extracted!\n", extracted);
     free(extracted);
-    if(fclose(fp) != 0) fatal("in extract_author() while closing file");
+    close_file(fp, "extract_author()");
 }
 
 // The options are "all" and "ext" both 3 letters
@@ -434,12 +428,10 @@ void extract_author() {
 
 
 void print_inserted_authors(){
-    FILE* fp = fopen(datafile, "r");
-    if (fp == NULL){
-        fatal("in print_inserted_authors() while opening file");
-    }
+    FILE* fp = open_file(datafile, "r", "print_inserted_authors()");
 
     char input_read[AUTHOR_LEN + 1];
+    int line = 1;
     int bytes = 1;
     char cont = '\n';
     skip_first_line(fp);
@@ -451,8 +443,9 @@ void print_inserted_authors(){
             bytes = estimate_read_length(fp);
             fread(input_read, bytes + 1, 1, fp);
             input_read[bytes] = '\0';
-            if(len_of_str(input_read, AUTHOR_LEN + 1) > 0) printf("%s\n", input_read);
+            if(len_of_str(input_read, AUTHOR_LEN + 1) > 0) printf("%d: %s\n", line, input_read);
             count++;
+            line++;
         }while(bytes != 0 && count < max_count);
 
         if(bytes == 0) continue;
@@ -463,12 +456,11 @@ void print_inserted_authors(){
         flush_stdin();
     }
 
-    if( fclose(fp) != 0) fatal("in print_inserted_authors() while closing file");
+    close_file(fp, "print_inserted_authors()");
 }
 
 void print_extracted_author(){
-    FILE* fp = fopen(datafile, "r");
-    if(fp == NULL) fatal("in print_extracted_author() while opening file");
+    FILE* fp = open_file(datafile, "r", "print_extracted_author()");
     char input_read[AUTHOR_LEN + 1];
     read_extracted_auth(fp, input_read);
     rem_time_t* rt = evaluate_time_passed(fp);
@@ -476,7 +468,7 @@ void print_extracted_author(){
     printf("The current extracted author is: %s\nuntil %s\n", input_read, exp_t);
     free(exp_t);
     free(rt);
-    if( fclose(fp) != 0 ) fatal("in print_extracted_author() while closing file"); 
+    close_file(fp, "print_extracted_author()");
 }
 
 void view(){
@@ -550,3 +542,18 @@ void remove_author(char* auth_name){
 
     if( fclose(fp) != 0 ) fatal("in remove_author() while closing file");
 }
+
+void find_author(char* author_name) {
+
+    FILE* fp = open_file(datafile, "r", "find_author()");
+
+    int line;
+    char* auth_name = trim(author_name);
+    if((line = search_author(fp, auth_name)) != -1){
+        printf("Author found at line %d!\n", line);
+        free(auth_name);
+        return;
+    }
+
+    printf("Author was not inserted!\n");
+    free(auth_name);

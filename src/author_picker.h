@@ -29,6 +29,7 @@ void insert_author(char* author_name);
 */
 void extract_author();
 
+
 /*
     # Remove
     Searches and removes selected author's name.
@@ -41,6 +42,9 @@ void extract_author();
 */
 void remove_author(char* author_name);
 
+
+void find_author(char* author_name);
+
 /*
     # View
 
@@ -48,6 +52,5 @@ void remove_author(char* author_name);
 */
 void view();
 
-// void find_author(char* author_name);
 
 #endif

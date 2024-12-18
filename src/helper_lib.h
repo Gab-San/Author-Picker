@@ -128,4 +128,8 @@ void flush_stdin();
 */
 char* trim(char* mod_str);
 
+FILE* open_file(const char* path, const char* access_mode, char* calling_func);
+void close_file(FILE* fp, char* calling_func);
+
+
 #endif
