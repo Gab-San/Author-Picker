@@ -486,6 +486,8 @@ void view(){
 
 void find_author(char* author_name) {
 
+    assert(len_of_str(author_name, AUTHOR_LEN) != 0);
+
     FILE* fp = open_file(datafile, "r", "find_author()");
 
     int line;
