@@ -20,6 +20,16 @@ void insert_author(char* author_name);
 */
 void extract_author();
 
+/*
+    Searches the file for an entry matching 'author_name'.
+    If a line matching the input is found then a check message will be displayed, 
+    otherwise a not found message will be displayed
+
+    # Input
+    author_name -> name of the author to search
+*/
+void find_author(char* author_name);
+
 // /*
 //     Searches and removes from the file the selected author's name.
 // */

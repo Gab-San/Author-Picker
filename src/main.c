@@ -5,7 +5,21 @@
 #include "helper_lib.h"
 
 #define A 2
-#define MENU ("\nWelcome to Author Picker:\n-. [I]nsert an author\n-. [E]xtract an author\n-. [V]iew\n-. [Q]uit\n")
+#define MENUTIZE_STR(X) "-. " #X
+#define MENUTIZE(X) MENUTIZE_STR(X)
+#define MENU ("\nWelcome to Author Picker:")
+#define MENU_INSERT [I]nsert an author
+#define MENU_EXTRACT [E]xtract an author
+#define MENU_VIEW [V]iew
+#define MENU_FIND [F]ind
+#define MENU_QUIT [Q]uit
+
+
+void read_auth_name(char* buf){
+    printf("Insert the name of the author: ");
+    read_line(buf, AUTHOR_LEN);
+    str_to_lower(buf);
+}
 
 int parse_input(char action, char* buf){
     assert('A' <= action && action <= 'z');
@@ -13,15 +27,21 @@ int parse_input(char action, char* buf){
     switch (conv_to_lower(action))
     {
     case 'i':
-        printf("Insert the name of the author: ");
-        read_line(buf, AUTHOR_LEN);
-        str_to_lower(buf);
+        read_auth_name(buf);
         printf("Inserting %s...\n", buf);
         insert_author(buf);
         return 1;
     case 'e':
         printf("Extracting...\n");
         extract_author();
+        return 1;
+
+    
+
+    case 'f':
+        read_auth_name(buf);
+        printf("Searching for %s...\n", buf);
+        find_author(buf);
         return 1;
     case 'v':
         view();
@@ -39,15 +59,25 @@ void check_config(){
     setup_config(NULL);
 }
 
+void print_menu(){
+    printf("%s\n%s\n%s\n%s\n%s\n%s\n",  MENU, 
+                                        MENUTIZE(MENU_INSERT), 
+                                        MENUTIZE(MENU_EXTRACT), 
+                                        MENUTIZE(MENU_FIND), 
+                                        MENUTIZE(MENU_VIEW), 
+                                        MENUTIZE(MENU_QUIT));
+}
+
 int main(int argc, char** argv) {
     check_config();
     char action;
     char buffer[AUTHOR_LEN] = {'\0'};
     int running = 1;
     while (running) {
-        printf(MENU);
+        print_menu();
         printf(INPUT);
         action = getchar() + '\0';
+        if(action == '\n') continue;
         flush_stdin();
         running = parse_input(action, buffer);
     }
