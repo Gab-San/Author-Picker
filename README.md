@@ -71,6 +71,8 @@ of the available commands is displayed below here👇
 | `extract` | extracts an author from the database and sets expiration date |
 | `view` | print to screen the inserted authors or the extracted one |
 | `remove` | removes author from the database |
+| `find` | search for an author in the database |
+
 
 Check [what's next](#whats-next) for more info about coming patches.
 

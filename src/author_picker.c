@@ -432,11 +432,11 @@ void print_inserted_authors(){
 
     char input_read[AUTHOR_LEN + 1];
     int line = 1;
-    int bytes = 1;
+    int bytes;
     char cont = '\n';
     skip_first_line(fp);
     printf("\n__INSERTED AUTHORS__\n");
-    while(conv_to_lower(cont) != 'q' && bytes != 0){
+    while(conv_to_lower(cont) != 'q'){
         int count = 0;
         const int max_count = 20;
         do{
@@ -448,7 +448,7 @@ void print_inserted_authors(){
             line++;
         }while(bytes != 0 && count < max_count);
 
-        if(bytes == 0) continue;
+        if(bytes == 0) break;
         
         printf(PRINT_INPUT);
         cont = getchar() + '\0';

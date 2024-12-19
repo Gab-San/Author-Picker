@@ -3,6 +3,7 @@
 - [Insert](#insert)
 - [Extract](#extract)
 - [Remove](#remove)
+- [Find](#find)
 - [View](#view)
 
 ## Insert
@@ -35,9 +36,15 @@ If the input command is incorrect the following screen will be shown:
 
 When in *view all*, in order to stop scrolling authors input `q` when the input appears:
 
-![Quit-View](./images/tutorial/quit_view.png) 
+![Quit-View](./images/tutorial/quit_view.png)
 
 ## Remove
 
 You can remove an author, if already present in the database, by using the *remove* action.
- 
+
+## Find
+
+You can find if an author is already present inside the database by using the *find* command.
+
+A message will be displayed with the result of the action.
+>>>>>>> 749e2b7 (Added documentation)

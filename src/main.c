@@ -88,6 +88,7 @@ int main(int argc, char** argv) {
         print_menu();
         printf(INPUT);
         action = getchar() + '\0';
+        if(action == '\n') continue;
         flush_stdin();
         running = parse_input(action);
     }
