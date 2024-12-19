@@ -128,7 +128,42 @@ void flush_stdin();
 */
 char* trim(char* mod_str);
 
+/*
+    Tries to open the specified file in path and returns the associated stream.
+    It iş a wrapper around the fopen function that checks for an error.
+
+    # Input
+    - path -> path to the file to open;
+    - access_mode -> "r" read, "w" truncate and write, "a" append; using a plus adds the remaining access mode (e.g "r+" read-write)
+    - calling_func -> name of the calling function, so that if an error occurs it will state the function trying to open the file 
+        (set to NULL to omit).
+
+    ## Strange behaviours
+    The 'calling_func' length is stripped after 70 characters to make the copy of the value safe.
+
+    # Returns
+    The file pointer to the stream associated with the opened file
+
+    # Error
+    If an error occurs while opening the file this function will exit the program with an error message.
+*/
 FILE* open_file(const char* path, const char* access_mode, char* calling_func);
+
+/*
+    Tries to close the stream of the file pointer 'fp'.
+
+    # Input
+    - fp -> file pointer;
+    - calling_func -> name of the calling_function, so that if an error occurs it will state the function trying to open the file.
+
+    ## Strange behaviours
+    The 'calling_func' length is stripped after 70 characters to make the copy of the value safe.
+
+    # Error
+
+    If an error occurs while closing the file this function will exit the program with an error message.
+
+*/
 void close_file(FILE* fp, char* calling_func);
 
 
