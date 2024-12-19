@@ -1,4 +1,4 @@
-# <img src="/images/author-picker-logo.png" alt="Description of image" style="width:40px;height:40px;"/> Author-Picker
+# <img src="./other/images/author-picker-logo.png" alt="Description of image" style="width:40px;height:40px;"/> Author-Picker
 
 This simple program lets you write down authors or albums you want to listen to and then, whenever you feel like it, you can extract a new author as a suggestion for your next music session!
 
@@ -36,23 +36,25 @@ This simple program lets you write down authors or albums you want to listen to 
 #### Runnable bash file
 
 > To facilitate step 4 I wrote a little bash program that will automatically run the program.
-Copy paste the following code in a file_name.sh file:
+Copy paste the following code in a 'file_name'.sh file:
 
 ```bash
 #! bin/bash
 cd out/
 ./out
+cd ..
 ```
 
-Then you can simply run `./file_name.sh`
+Then you can simply run `./'file_name'.sh`
 
 ## Usage
 
-- [Insert](#insert)
-- [Extract](#extract)
-- [View](#view)
+To run:
 
-To run use  `./out/out` or if you wrote the [runnable bash file](#runnable-bash-file) simply run `./file_name.sh`
+1. Enter the folder `out/` with `cd out/`;
+2. Run the program by typing `./out`.
+
+or if you wrote the [runnable bash file](#runnable-bash-file) simply run `./file_name.sh`
 
 > Disclaimer! Most of the inputs can be deduced from the menus. The character(s) in between square brackets show what should be the input.
 
@@ -60,39 +62,16 @@ On the first start-up, the first screen that will appear will lets you choose ho
 
 ![Choose-Limit](./images/tutorial/choose_limit.png)
 
-After which the menu appears, right now there are only a couple actions that you can do. (Check [what's next](#whats-next) for more info)
+After which the menu appears, check out the [user manual](./other/user_manual.md) to understand what the actions do. A list
+of the available commands is displayed below here👇
 
-### Insert
+| Action | Description |
+|:------:| ----------- |
+| `insert` | insert a new author into the database |
+| `extract` | extracts an author from the database and sets expiration date |
+| `view` | print to screen the inserted authors or the extracted one |
 
-*Insert* lets you insert an author into the database:
-
-![Insert](./images/tutorial/insert_example.png)
-
-### Extract
-
-*Extract* lets you extract an author and set an expiration date to wait for your next extraction:
-
-![Appr-Extract](./images/tutorial/approved_extraction.png)
-
-If you request another extraction before the time limit has expired then your request will be denied:
-
-![Deny-Extract](./images/tutorial/denied_extraction.png)
-
-### View
-
-You can view the extracted author or the other inserted ones by using the *view* command:
-
-![View-All](./images/tutorial/view_all.png)
-
-![View-Extracted](./images/tutorial/view_extracted.png)
-
-If the input command is incorrect the following screen will be shown:
-
-![Incorrect-View-Input](./images/tutorial/incorrect_view_input.png)
-
-When in _view all_, in order to stop scrolling authors input `q` when the input appears:
-
-![Quit-View](./images/tutorial/quit_view.png) 
+Check [what's next](#whats-next) for more info about coming patches.
 
 ## Contributing
 
@@ -120,6 +99,6 @@ I will try to add some other actions like:
 ---
 
 Since I'm proud of my little work:
-<p align="center"> <img src="/images/author-picker-logo.png" alt="Logo"> </p>
+<p align="center"> <img src="./other/images/author-picker-logo.png" alt="Logo"> </p>
 
 Be sure to check the [wiki](https://github.com/Gab-San/Author-Picker/wiki)!
