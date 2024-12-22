@@ -70,6 +70,7 @@ of the available commands is displayed below here👇
 | `insert` | insert a new author into the database |
 | `extract` | extracts an author from the database and sets expiration date |
 | `view` | print to screen the inserted authors or the extracted one |
+| `remove` | removes author from the database |
 
 Check [what's next](#whats-next) for more info about coming patches.
 

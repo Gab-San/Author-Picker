@@ -192,6 +192,8 @@ boolean search_author(FILE* fp, char* auth){
     return false;
 }   
 
+#define MSG_INPUT_ERROR ("\n[INPUT ERROR]: the input has null length, please consider writing at least one character!\n")
+
 void insert_author(char* author_name) {
     // At this point the buffer contains the name of the author
     // this means that 2 actions are to be performed:
@@ -202,7 +204,11 @@ void insert_author(char* author_name) {
     // 
     // THE FIRST LINE OF THE FILE WILL CONTAIN THE AUTHOR THAT WAS LAST EXTRACTED
 
-    assert( strlen(author_name) != 0 ); // This has to be changed into an print to screen and early return
+    if(len_of_str(author_name, AUTHOR_LEN) == 0){
+        fprintf(stderr, "\n[INPUT ERROR]: the input has null length, please consider writing at least one character!\n");
+        return;
+    }
+
     char* auth_name = trim(author_name);
     
     FILE* fp = fopen(datafile, "r+");
@@ -512,7 +518,11 @@ int bytes_to_end(FILE* fp){
 }
 
 void remove_author(char* auth_name){
-    assert(strlen(auth_name) != 0);
+    
+    if(len_of_str(auth_name, AUTHOR_LEN) == 0) {
+        fprintf(stderr, MSG_INPUT_ERROR);
+        return;
+    }
 
     FILE* fp = fopen(datafile, "r+");
     if (!fp) fatal("in remove_author() while opening file");
@@ -531,9 +541,9 @@ void remove_author(char* auth_name){
 
     fseek(fp, 0, SEEK_SET);
     int bytes_file_size = bytes_to_end(fp);
-    int bytes_first_line =  bytes_file_size - (auth_bytes + 1 + cpy_bytes);
-    truncate(datafile, bytes_first_line);
-    fseek(fp, bytes_first_line, SEEK_SET);
+    int bytes_to_save =  bytes_file_size - (auth_bytes + 1 + cpy_bytes);
+    truncate(datafile, bytes_to_save);
+    fseek(fp, bytes_to_save, SEEK_SET);
     fwrite(lines_after->buf, lines_after->bytes, 1, fp);
     free(lines_after->buf);
     free(lines_after);

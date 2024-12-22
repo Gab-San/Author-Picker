@@ -4,15 +4,24 @@
 #define AUTHOR_LEN 50
 
 /*
+    # Insert
     Appends the given author's name to the file.
 
-    # INPUT
+    ## Input
+    author_name -> string to insert
 
-    The author's name read from the user input.
+    If the passed string has a null lenght (=0), this function
+    notifies the user and returns without performing any further action.
+
+    ## Deallocation
+    This function doesn't deallocate the input as it cannot determine if it
+    is heap or stack allocated
 */
 void insert_author(char* author_name);
 
 /*
+    # Extract
+
     Highlights a random author's name from those inserted into the file
     rewriting the name at the first line.
     The first line is formatted with the name of the author and the time and day 
@@ -21,14 +30,24 @@ void insert_author(char* author_name);
 void extract_author();
 
 /*
-    Searches and removes from the file the selected author's name.
+    # Remove
+    Searches and removes selected author's name.
+
+    ## Input
+    author_name -> string to remove
+
+    If the given string has a null length (=0) then the function
+    notifies the user and returns without performing any further action.
 */
 void remove_author(char* author_name);
 
 /*
+    # View
+
     Prints out all of the authors currently inserted
 */
 void view();
+
 // void find_author(char* author_name);
 
 #endif

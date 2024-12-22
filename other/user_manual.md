@@ -2,6 +2,7 @@
 
 - [Insert](#insert)
 - [Extract](#extract)
+- [Remove](#remove)
 - [View](#view)
 
 ## Insert
@@ -35,3 +36,8 @@ If the input command is incorrect the following screen will be shown:
 When in *view all*, in order to stop scrolling authors input `q` when the input appears:
 
 ![Quit-View](./images/tutorial/quit_view.png) 
+
+## Remove
+
+You can remove an author, if already present in the database, by using the *remove* action.
+ 
