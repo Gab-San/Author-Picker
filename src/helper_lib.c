@@ -15,6 +15,8 @@ void flush_stdin() {
 }
 
 int len_of_str(char* buffer, size_t max_len){
+    if(buffer == NULL) return 0;
+
     int counter = 0;
     while(counter < max_len && *(buffer + counter) != '\0') counter++;
     return counter;
@@ -93,37 +95,23 @@ void setup_config(const char* optional_dialog){
     fclose(config);
 }
 
-int unsafe_len_of_str(char* buf){
-    int count = 0;
-    while(buf[count] != '\0') count++;
-    return count;
-}
+char* trim(char* org_str){
 
-char* trim(char* mod_str){
-    char* front = mod_str;
-    char* end = mod_str + unsafe_len_of_str(mod_str) - 1;
-    
-    if(mod_str == NULL) return NULL;
-    if (unsafe_len_of_str(mod_str) == 0) return NULL;
-    if (*front == '\0'){
-        char* trimmed_str = (char*) malloc(1);
-        trimmed_str[0] = '\0';
-        return trimmed_str;
-    }
+    if(org_str == NULL) return NULL;
+    if (strlen(org_str) == 0) return NULL;
+
+    char* front = org_str;
+    char* end = org_str + strlen(org_str);
 
     while(*front == ' ') front++;
-    if(front == end){ 
+    if(front == end){ // String filled with spaces
         char* trimmed_str = (char*) malloc(1);
         trimmed_str[0] = '\0';
         return trimmed_str;
     }
-    while(*end == ' ' && front != end) end--;
 
-    if(front == end){
-        char* trimmed_str = (char*) malloc(1);
-        trimmed_str[0] = '\0';
-        return trimmed_str;
-    }
+    end--; // end is now on the last character before termination char;
+    while(*end == ' ' && end != front) end--;
     
     char* p = front;
     int len = 0;

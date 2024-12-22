@@ -9,8 +9,6 @@
 #include <time.h>
 #include <unistd.h>
 
-typedef enum bool{true = 1, false = 0} boolean;
-
 typedef struct remaining_time {
     int pt;
     struct tm* expiration_date;
@@ -157,12 +155,16 @@ void read_extracted_auth(FILE* fp,char* rbuf){
 }
 
 /*
+    # Search author
     Searches for an equal author name.
 
-    # RETURNS
+    ## Output
 
     Returns -1 if there's no match, otherwise returns the line on which the author is located;
     the count starts at 0 being the first line (extraction line).
+
+    ## Side effects
+    Cursor is positioned at the start of the match line.
 */
 int search_author(FILE* fp, char* auth){
     char input_read[AUTHOR_LEN] = {'\0'};
@@ -182,7 +184,10 @@ int search_author(FILE* fp, char* auth){
 
         // printf("INPUT: %s\n", input_read);
         if( len_of_str(input_read, AUTHOR_LEN) == len_of_str(auth, AUTHOR_LEN) &&
-            strncmp(input_read, auth, len_of_str(auth,AUTHOR_LEN)) == 0 ) return line;
+            strncmp(input_read, auth, len_of_str(auth,AUTHOR_LEN)) == 0 ){ 
+                fseek(fp, -1*(bytes_read + 1), SEEK_CUR);
+                return line;
+            }
     }while(bytes_read != 0);
 
     return -1;
@@ -200,29 +205,28 @@ void insert_author(char* author_name) {
     // 
     // THE FIRST LINE OF THE FILE WILL CONTAIN THE AUTHOR THAT WAS LAST EXTRACTED
 
-    if(len_of_str(author_name, AUTHOR_LEN) == 0){
-        fprintf(stderr, "\n[INPUT ERROR]: the input has null length, please consider writing at least one character!\n");
-        return;
-    }
-
     char* auth_name = trim(author_name);
-    
-    FILE* fp = fopen(datafile, "r+");
-    if(fp == NULL){
-        fp = initialize_file();
-    }
 
-    
-
-    if( search_author(fp, auth_name) != -1 ){
-        printf("%s was previously inserted!\n", auth_name);
+    if (len_of_str(auth_name, AUTHOR_LEN) == 0){
+        fprintf(stderr, MSG_INPUT_ERROR);
         free(auth_name);
         return;
     }
+    
+    FILE* fp = fopen(datafile, "r+");
+    
+    if(fp == NULL)
+        fp = initialize_file();
 
-    append_author(fp, auth_name);
+    
+
+    if( search_author(fp, auth_name) != -1 )
+        printf("%s was previously inserted!\n", auth_name);
+    else
+        append_author(fp, auth_name);
+    
+    
     free(auth_name);
-
     close_file(fp, "insert_author()");
 }
 
@@ -426,6 +430,7 @@ void extract_author() {
 #define VIEW_DIALOG ("-. [ALL] AUTHORS\n-. [EXT]RACTED AUTHOR\n-. [BACK]\n")
 #define PRINT_INPUT (": ")
 
+typedef enum bool{true = 1, false = 0} boolean;
 
 void print_inserted_authors(){
     FILE* fp = open_file(datafile, "r", "print_inserted_authors()");
@@ -505,22 +510,24 @@ int bytes_to_end(FILE* fp){
         bytes_read++;
     }
     fseek(fp, -1*bytes_read, SEEK_CUR);
-    printf("[DEBUG:bytes_to_end] bytes_read %d\n", bytes_read);
     return bytes_read;
 }
 
-void remove_author(char* auth_name){
+void remove_author(char* author_name){
     
+    char* auth_name = trim(author_name);
+
     if(len_of_str(auth_name, AUTHOR_LEN) == 0) {
         fprintf(stderr, MSG_INPUT_ERROR);
+        free(auth_name);
         return;
     }
 
-    FILE* fp = fopen(datafile, "r+");
-    if (!fp) fatal("in remove_author() while opening file");
+    FILE* fp = open_file(datafile, "r+", "remove_author()");
 
-    if(search_author(fp, auth_name) == false){
+    if(search_author(fp, auth_name) == -1){
         printf("Author not found!\n\nBe sure to write the name as inserted!\n");
+        free(auth_name);
         return;
     }
 
@@ -532,7 +539,7 @@ void remove_author(char* auth_name){
     cbuffer_t* lines_after = copy_text(fp, cpy_bytes);
 
     fseek(fp, 0, SEEK_SET);
-    int bytes_file_size = bytes_to_end(fp);
+    int bytes_file_size = bytes_to_end(fp); // FIRST_LINE_LEN: 17 + 20 + auth_len<=50
     int bytes_to_save =  bytes_file_size - (auth_bytes + 1 + cpy_bytes);
     truncate(datafile, bytes_to_save);
     fseek(fp, bytes_to_save, SEEK_SET);
@@ -540,22 +547,29 @@ void remove_author(char* auth_name){
     free(lines_after->buf);
     free(lines_after);
 
-    if( fclose(fp) != 0 ) fatal("in remove_author() while closing file");
+    free(auth_name);
+    
+    close_file(fp, "remove_author()");
 }
 
 void find_author(char* author_name) {
 
-    assert(len_of_str(author_name, AUTHOR_LEN) != 0);
-
-    FILE* fp = open_file(datafile, "r", "find_author()");
-
-    int line;
     char* auth_name = trim(author_name);
-    if((line = search_author(fp, auth_name)) != -1){
-        printf("Author found at line %d!\n", line);
+
+    if(len_of_str(auth_name, AUTHOR_LEN) == 0){
+        fprintf(stderr, MSG_INPUT_ERROR);
         free(auth_name);
         return;
     }
 
-    printf("Author was not inserted!\n");
+    FILE* fp = open_file(datafile, "r", "find_author()");
+
+    int line;
+
+    if((line = search_author(fp, auth_name)) != -1)
+        printf("Author found at line %d!\n", line);
+    else
+        printf("Author not found!\n");
+    
     free(auth_name);
+}

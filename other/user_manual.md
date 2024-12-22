@@ -44,7 +44,7 @@ You can remove an author, if already present in the database, by using the *remo
 
 ## Find
 
-You can find if an author is already present inside the database by using the *find* command.
+Search for an author in the database by using the *find* command.
 
 A message will be displayed with the result of the action.
 >>>>>>> 749e2b7 (Added documentation)

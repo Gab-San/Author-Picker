@@ -45,11 +45,11 @@ void remove_author(char* author_name);
 
 
 /*
+    # Find
     Searches the file for an entry matching 'author_name'.
-    If a line matching the input is found then a check message will be displayed, 
-    otherwise a not found message will be displayed
+    If a line matching the input is found then a check message will be displayed, otherwise a not found message will be displayed
 
-    # Input
+    ## Input
     author_name -> name of the author to search
 */
 void find_author(char* author_name);
