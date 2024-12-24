@@ -132,7 +132,6 @@ char* trim(char* org_str){
 #define MAX_FUNC_LEN 70
 
 FILE* open_file(const char* path, const char* access_mode, char* calling_func) {
-    FILE* fp = fopen(path, access_mode);
     
     char msg[ERR_MSG_LEN] = "in ";
 
@@ -144,6 +143,7 @@ FILE* open_file(const char* path, const char* access_mode, char* calling_func) {
     int error_offset = strlen(msg);
     strncat(msg, " while opening file", ERR_MSG_LEN - error_offset);
 
+    FILE* fp = fopen(path, access_mode);
     if(!fp) fatal(msg);
 
     return fp;
@@ -158,5 +158,6 @@ void close_file(FILE* fp, char* calling_func) {
 
     int error_offset = strlen(msg);
     strncat(msg, " while closing file", ERR_MSG_LEN - error_offset);
+    
     if(fclose(fp) != 0) fatal(msg);
 }
