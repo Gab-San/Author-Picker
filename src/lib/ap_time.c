@@ -1,6 +1,7 @@
 #define _XOPEN_SOURCE 700
 #include "ap_time.h"
-#include "helper_lib.h"
+#include "gen_func.h"
+#include "string_helper.h"
 
 #include <stdio.h>
 #include <stdlib.h>

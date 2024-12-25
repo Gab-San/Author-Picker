@@ -1,27 +1,110 @@
 #include "author_picker.h"
-#include "helper_lib.h"
-#include "ap_time.h"
+#include "lib/ap_config.h"
+#include "lib/gen_func.h"
+#include "lib/string_helper.h"
+#include "lib/file_helper.h"
+#include "lib/ap_time.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <time.h>
-#include <unistd.h>
+#include <unistd.h> // truncate
+
+#define AUTHOR_LEN 50
+
+
+void read_auth_name(char* buf){
+    printf("Insert the name of the author: ");
+    read_line(buf, AUTHOR_LEN);
+    str_to_lower(buf);
+}
+
+
+#define MENUTIZE_STR(X) "-. " #X
+#define MENUTIZE(X) MENUTIZE_STR(X)
+#define MENU ("\nWelcome to Author Picker:")
+#define MENU_INSERT [I]nsert an author
+#define MENU_EXTRACT [E]xtract an author
+#define MENU_VIEW [V]iew
+#define MENU_REMOVE [R]emove
+#define MENU_FIND [F]ind
+#define MENU_QUIT [Q]uit
+
+void print_menu(){
+    printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n",  MENU, 
+                                        MENUTIZE(MENU_INSERT), 
+                                        MENUTIZE(MENU_EXTRACT),
+                                        MENUTIZE(MENU_FIND), 
+                                        MENUTIZE(MENU_REMOVE), 
+                                        MENUTIZE(MENU_VIEW), 
+                                        MENUTIZE(MENU_QUIT));
+}
+
+
+int parse_input(char action){
+    // This should not be an assertion if an if is not implemented before calling this func
+    assert('A' <= action && action <= 'z');
+
+    char buf[AUTHOR_LEN] = {'\0'};
+
+    switch (conv_to_lower(action)){
+        case 'i':
+            read_auth_name(buf);
+            printf("Inserting %s...\n", buf);
+            insert_author(buf);
+            return 1;
+
+        case 'e':
+            printf("Extracting...\n");
+            extract_author();
+            return 1;
+
+        case 'r':
+            read_auth_name(buf);
+            printf("Remove %s...\n", buf);
+            remove_author(buf);
+            return 1;
+
+        case 'f':
+            read_auth_name(buf);
+            printf("Searching for %s...\n", buf);
+            find_author(buf);
+            return 1;
+
+        case 'v':
+            view();
+            return 1;
+    
+        case 'q': return 0;
+        default:
+            printf("Selected action not valid: %c\n", action);
+            return 1;
+    }
+}
+
+void run(){
+    check_config();
+    char action;
+    int running = 1;
+    while (running) {
+        print_menu();
+        printf(INPUT);
+        action = getchar() + '\0';
+        if(action == '\n') continue;
+        flush_stdin();
+        running = parse_input(action);
+    }
+}
+
 
 typedef struct remaining_time {
     int pt;
     struct tm* expiration_date;
 } rem_time_t;
 
-// Basically somewhat of a string: it makes it easier to do operations of copying and writing
-typedef struct char_buffer { 
-    char* buf;
-    int bytes;
-} cbuffer_t;
-
 const char datafile[] = "./db/author_db.txt";
-
 
 #define FIRST_LINE_TEXT "LAST EXTRACTED: "
 #define FIRST_LINE_OFFST 17
@@ -59,36 +142,6 @@ int estimate_read_length(FILE* fp) {
 }
 
 /*
-    Moves the file cursor to the start of the requested line.
-    
-    # INPUT
-    Line to go to. The cursor will be positioned at the start of the line.
-
-    # RETURNS
-    The value of bytes read (including newline) 
-*/
-int go_to_line(int line, FILE* fp) {
-    fseek(fp, 0, SEEK_SET);
-    int total_bytes_read = 0;
-    int count = 0;
-    char c;
-
-    while(count < line){
-
-        while((c = fgetc(fp)) != '\n'){
-            if(c == EOF) break;
-
-            total_bytes_read++;
-        }
-
-        total_bytes_read++; // Counting for '\n'
-        count++;
-    }
-
-    return total_bytes_read;
-}
-
-/*
     Moves the cursor to the end of the first line.
     
     The first line is the one that states which name
@@ -103,35 +156,6 @@ int skip_first_line(FILE* fp){
     int bytes_read = estimate_read_length(fp);
     fseek(fp, bytes_read + 1, SEEK_CUR); // + 1 counting for '\n'
     return bytes_read + FIRST_LINE_OFFST;
-}
-
-/*
-    Starting from the from_line moves the cursor to the start of the to_line.
-
-    # INPUT
-    from_line: the line from which the cursor will start.
-    to_line: the line from which the cursor will be positioned at (start).
-    
-    ## PREREQUISITE
-    from_line <= to_line
-
-    # RETURNS
-    Returns the number of bytes read during this operation (including newlines)
-*/
-int skip_to_line_from(int from_line, int to_line, FILE* fp){
-    go_to_line(from_line, fp);
-    int count = from_line;
-    int bytes_read = 0;
-    char c;
-    while(count < to_line){
-        while((c = fgetc(fp)) != '\n'){
-            if(c == EOF) break;
-            bytes_read++;
-        }
-        bytes_read++; // Counting newlines
-        count++;
-    }
-    return bytes_read;
 }
 
 /*
@@ -216,15 +240,12 @@ void insert_author(char* author_name) {
     FILE* fp = fopen(datafile, "r+");
     
     if(fp == NULL)
-        fp = initialize_file();
-
-    
+        fp = initialize_file();    
 
     if( search_author(fp, auth_name) != -1 )
         printf("%s was previously inserted!\n", auth_name);
     else
         append_author(fp, auth_name);
-    
     
     free(auth_name);
     close_file(fp, "insert_author()");
@@ -263,24 +284,16 @@ void write_first_line(FILE* fp, char* buf){
     fseek(fp, FIRST_LINE_OFFST-1, SEEK_SET);
     fwrite(buf, len_of_str(buf, AUTHOR_LEN), 1, fp);
     fwrite(" ", 1, 1, fp);
+
     struct tm* ftime = get_current_time();
+
     char* str_ftime = ftime_to_string(ftime);
     fwrite(str_ftime, FORMATTED_TIME_LEN - 1 , 1, fp);
     free(str_ftime);
     fwrite("\n", 1, 1, fp);
+
     int written_bytes = FIRST_LINE_OFFST + len_of_str(buf,AUTHOR_LEN) + FORMATTED_TIME_LEN;
     truncate(datafile, written_bytes);
-}
-
-
-cbuffer_t* copy_text(FILE*fp, int bytes_read){
-    cbuffer_t* cp_buf = (cbuffer_t*) malloc(sizeof(cbuffer_t));
-    if(cp_buf == NULL) fatal("in copy_text() while trying to allocate memory for cp_buf");
-    cp_buf->buf = (char*) malloc(bytes_read);
-    if(cp_buf->buf == NULL) fatal("in copy_text() while trying to allocate memory for cp_buf->buf");
-    cp_buf->bytes = bytes_read;
-    fread(cp_buf->buf, cp_buf->bytes, 1, fp);
-    return cp_buf;
 }
 
 /*
@@ -324,29 +337,6 @@ char* read_extraction_time(FILE* fp){
     return ext_t;
 }
 
-enum passed_time read_config(){
-    FILE* fconfig = open_file(get_config_file(), "r", "read_config()");
-    
-    char cfg;
-    fread(&cfg, 1, 1, fconfig);
-    enum passed_time pt;
-    switch (cfg){
-        case 'h':   pt = HOUR; 
-                    break;
-        case 'd':   pt = DAY;
-                    break;
-        case 'w':   pt = WEEK;
-                    break;
-        case 'm':   pt = MONTH;
-                    break;
-        default:    close_file(fconfig, "read_config()");
-                    setup_config("It looks like there is something wrong with the config file.\nLet's set it up again!\n");
-                    return read_config();
-    }
-    close_file(fconfig, "read_config()");
-    return pt;
-}
-
 rem_time_t* evaluate_time_passed(FILE* fp){
     
     char* ext_time_str = read_extraction_time(fp);
@@ -368,6 +358,22 @@ rem_time_t* evaluate_time_passed(FILE* fp){
     return rem;
 }
 
+void copy_file(FILE* fp, int rline, int reads, char* extracted){
+    // Now the lines before and after the extracted lines must be copied
+    cbuffer_t* cp_before_line = copy_text_from_to(fp, 1, rline);
+    // Reads is equal to the number of inserted lines. In order to read the last 
+    // author is necessary to count one more line after that.
+    cbuffer_t* cp_after_line = copy_text_from_to(fp, rline + 1, reads + 1);
+    // Writes the first line and truncates
+    write_first_line(fp, extracted);
+    // Writes back copied text
+    copy_back_txt(cp_before_line, cp_after_line, fp);
+    
+    free(cp_before_line->buf);
+    free(cp_before_line);
+    free(cp_after_line->buf);
+    free(cp_after_line);
+}
 
 void extract_author() {
     // At this point the file should exist
@@ -405,20 +411,7 @@ void extract_author() {
     fread(extracted, bytes_read + 1, 1, fp);
     extracted[bytes_read] = '\0';
 
-    // Now the lines before and after the extracted lines must be copied
-    cbuffer_t* cp_before_line = copy_text_from_to(fp, 1, rline);
-    // Reads is equal to the number of inserted lines. In order to read the last 
-    // author is necessary to count one more line after that.
-    cbuffer_t* cp_after_line = copy_text_from_to(fp, rline + 1, reads + 1);
-    // Writes the first line and truncates
-    write_first_line(fp, extracted);
-    // Writes back copied text
-    copy_back_txt(cp_before_line, cp_after_line, fp);
-    
-    free(cp_before_line->buf);
-    free(cp_before_line);
-    free(cp_after_line->buf);
-    free(cp_after_line);
+    copy_file(fp, rline, reads, extracted);
 
     printf("%s extracted!\n", extracted);
     free(extracted);
@@ -432,18 +425,17 @@ void extract_author() {
 
 typedef enum bool{true = 1, false = 0} boolean;
 
-void print_inserted_authors(){
-    FILE* fp = open_file(datafile, "r", "print_inserted_authors()");
+void print_insauth_loop(FILE* fp) {
 
     char input_read[AUTHOR_LEN + 1];
     int line = 1;
     int bytes;
     char cont = '\n';
-    skip_first_line(fp);
-    printf("\n__INSERTED AUTHORS__\n");
+
     while(conv_to_lower(cont) != 'q'){
         int count = 0;
         const int max_count = 20;
+
         do{
             bytes = estimate_read_length(fp);
             fread(input_read, bytes + 1, 1, fp);
@@ -460,6 +452,15 @@ void print_inserted_authors(){
         if(cont == '\n') continue;
         flush_stdin();
     }
+}
+
+void print_inserted_authors(){
+    FILE* fp = open_file(datafile, "r", "print_inserted_authors()");
+
+    skip_first_line(fp);
+    printf("\n__INSERTED AUTHORS__\n");
+
+    print_insauth_loop(fp);
 
     close_file(fp, "print_inserted_authors()");
 }
@@ -467,10 +468,19 @@ void print_inserted_authors(){
 void print_extracted_author(){
     FILE* fp = open_file(datafile, "r", "print_extracted_author()");
     char input_read[AUTHOR_LEN + 1];
+
     read_extracted_auth(fp, input_read);
+    
+    if(len_of_str(input_read, AUTHOR_LEN) == 0){
+        printf("No author extracted!\n");
+        return;
+    }
+
     rem_time_t* rt = evaluate_time_passed(fp);
     char* exp_t = ftime_to_string(rt->expiration_date);
+
     printf("The current extracted author is: %s\nuntil %s\n", input_read, exp_t);
+
     free(exp_t);
     free(rt);
     close_file(fp, "print_extracted_author()");
@@ -524,13 +534,20 @@ void remove_author(char* author_name){
     }
 
     FILE* fp = open_file(datafile, "r+", "remove_author()");
-
-    if(search_author(fp, auth_name) == -1){
+    
+    int line;
+    if((line = search_author(fp, auth_name)) == -1){
         printf("Author not found!\n\nBe sure to write the name as inserted!\n");
         free(auth_name);
         return;
     }
 
+    if(line == 0){ // Reading extracted author
+        printf("Cannot remove the extracted author!\n");
+        free(auth_name);
+        return;
+    }
+    
     int auth_bytes = estimate_read_length(fp);
     fseek(fp, auth_bytes + 1, SEEK_CUR);
 

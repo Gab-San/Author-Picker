@@ -1,7 +1,11 @@
 #ifndef AUTHOR_PICKER_H
 #define AUTHOR_PICKER_H
 
-#define AUTHOR_LEN 50
+/*
+    # Run
+    Run the program loop
+*/
+void run();
 
 /*
     # Insert
@@ -29,8 +33,6 @@ void insert_author(char* author_name);
 */
 void extract_author();
 
-
-
 /*
     # Remove
     Searches and removes selected author's name.
@@ -42,7 +44,6 @@ void extract_author();
     notifies the user and returns without performing any further action.
 */
 void remove_author(char* author_name);
-
 
 /*
     # Find
@@ -60,6 +61,5 @@ void find_author(char* author_name);
     Prints out all of the authors currently inserted
 */
 void view();
-
 
 #endif
