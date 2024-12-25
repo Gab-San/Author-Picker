@@ -1,6 +1,6 @@
 # <img src="./other/images/author-picker-logo.png" alt="Description of image" style="width:40px;height:40px;"/> Author-Picker
 
-This simple program lets you write down authors or albums you want to listen to and then, whenever you feel like it, you can extract a new author/album as a suggestion for your next music session!
+Keep track of authors or albums to listen to and then, whenever you feel like it, extract a new author/album as a suggestion for your next music session!
 
 ## Table of Contents
 
@@ -18,16 +18,15 @@ This simple program lets you write down authors or albums you want to listen to 
 
 1. Clone this repository: `git clone https://github.com/Gab-San/Author-Picker.git`
 2. Get into the folder: `cd author_picker/`
-3. Compile the program:
-    - Automatically: the makefile in the project will compile everything that is needed, just write the command `make`
+3. Compile the program: the makefile in the project will compile everything that is needed, just run `make` in the console;
 4. Run the program:
     1. Enter into the output folder: `cd out/`
     2. Run the program `./out`
 
 #### Runnable bash file
 
-> To facilitate step 4 I wrote a little bash program that will automatically run the program.
-Copy paste the following code in a 'file_name'.sh file:
+To facilitate step 4 I wrote a little bash program that will automatically run the program.
+Copy paste the following code in a `<file_name>.sh` file:
 
 ```bash
 #! bin/bash
@@ -36,7 +35,7 @@ cd out/
 cd ..
 ```
 
-Open tour console and run `chmod u+x 'file_name'.sh`; then you can simply run `./'file_name'.sh`
+Open the console and run `chmod u+x <file_name>.sh`; then you can simply run `./<file_name>.sh`
 
 ## Usage
 
@@ -58,9 +57,9 @@ After which the menu appears, check out the [user manual](./other/user_manual.md
 | Action | Description |
 |:------:| ----------- |
 | `insert` | insert a new author into the database |
-| `extract` | extracts an author from the database and sets expiration date |
+| `extract` | extract an author from the database and set expiration date |
 | `view` | print to screen the inserted authors or the extracted one |
-| `remove` | removes author from the database |
+| `remove` | remove author from the database |
 | `find` | search for an author in the database |
 
 Check [what's next](#whats-next) for more info about coming patches.
