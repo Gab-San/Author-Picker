@@ -38,16 +38,7 @@ void close_file(FILE* fp, char* calling_func) {
     if(fclose(fp) != 0) fatal(msg);
 }
 
-/*
-    # GO TO
-    Moves the file cursor to the start of the requested line.
-    
-    ## INPUT
-    Line to go to. The cursor will be positioned at the start of the line.
 
-    ## RETURNS
-    The value of bytes read (including newline) 
-*/
 int go_to_line(int line, FILE* fp) {
     fseek(fp, 0, SEEK_SET);
     int total_bytes_read = 0;
@@ -69,20 +60,6 @@ int go_to_line(int line, FILE* fp) {
     return total_bytes_read;
 }
 
-/*
-    # SKIP TO FROM
-    Starting from the from_line moves the cursor to the start of the to_line.
-
-    ## INPUT
-    from_line: the line from which the cursor will start.
-    to_line: the line from which the cursor will be positioned at (start).
-    
-    ### PRE-CONDITIONS
-    from_line <= to_line
-
-    ## RETURNS
-    Returns the number of bytes read during this operation (including newlines)
-*/
 int skip_to_line_from(int from_line, int to_line, FILE* fp){
     go_to_line(from_line, fp);
     int count = from_line;

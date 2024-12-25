@@ -1,4 +1,4 @@
-#include "author_picker.h"
+#include "run_module.h"
 
 int main() {
     run();

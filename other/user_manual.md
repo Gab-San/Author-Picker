@@ -1,5 +1,7 @@
 # USER MANUAL
 
+Here the list of actions shown on the menu:
+
 - [Insert](#insert)
 - [Extract](#extract)
 - [Remove](#remove)
@@ -8,42 +10,38 @@
 
 ## Insert
 
-*Insert* lets you insert an author into the database:
+*Insert* an author into the database:
 
-![Insert](./images/tutorial/insert_example.png)
+![Insert](./images/tutorial/insert.gif)
 
 ## Extract
 
-*Extract* lets you extract an author and set an expiration date to wait for your next extraction:
+*Extract* an author and set an expiration date. The next extraction will be available only after the date has expired:
 
-![Appr-Extract](./images/tutorial/approved_extraction.png)
+![Appr-Extract](./images/tutorial/approved_extract.gif)
 
 If you request another extraction before the time limit has expired then your request will be denied:
 
-![Deny-Extract](./images/tutorial/denied_extraction.png)
+![Deny-Extract](./images/tutorial/denied_extraction.gif)
 
 ## View
 
-You can view the extracted author or the other inserted ones by using the *view* command:
+View the extracted author or the other inserted ones by using the *view* command:
 
-![View-All](./images/tutorial/view_all.png)
-
-![View-Extracted](./images/tutorial/view_extracted.png)
-
-If the input command is incorrect the following screen will be shown:
-
-![Incorrect-View-Input](./images/tutorial/incorrect_view_input.png)
+![View-All](./images/tutorial/view.gif)
 
 When in *view all*, in order to stop scrolling authors input `q` when the input appears:
 
-![Quit-View](./images/tutorial/quit_view.png)
+![Quit-View](./images/tutorial/quit_view.gif)
 
 ## Remove
 
-You can remove an author, if already present in the database, by using the *remove* action.
+Remove an author, if already present in the database, by using the *remove* action:
+
+![Remove](./images/tutorial/remove.gif)
 
 ## Find
 
-Search for an author in the database by using the *find* command.
+Search for an author in the database by using the *find* command; a message will be displayed with the result of the action:
 
-A message will be displayed with the result of the action.
+![Find](./images/tutorial/find.gif)

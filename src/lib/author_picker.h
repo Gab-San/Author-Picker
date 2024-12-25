@@ -1,11 +1,8 @@
 #ifndef AUTHOR_PICKER_H
 #define AUTHOR_PICKER_H
 
-/*
-    # Run
-    Run the program loop
-*/
-void run();
+#define AUTHOR_LEN 50
+
 
 /*
     # Insert
@@ -42,6 +39,8 @@ void extract_author();
 
     If the given string has a null length (=0) then the function
     notifies the user and returns without performing any further action.
+
+    If the author is not present the user is notified an the database remains unchanged.
 */
 void remove_author(char* author_name);
 
